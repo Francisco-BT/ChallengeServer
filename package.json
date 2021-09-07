@@ -16,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/Francisco-BT/ChallengeServer/issues"
   },
-  "homepage": "https://github.com/Francisco-BT/ChallengeServer#readme"
+  "homepage": "https://github.com/Francisco-BT/ChallengeServer#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "jest": "^27.1.0"
+  }
 }
