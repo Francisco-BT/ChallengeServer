@@ -1,24 +1,40 @@
 {
-  "name": "ChallengeServer",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Francisco-BT/ChallengeServer.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Francisco-BT/ChallengeServer/issues"
-  },
-  "homepage": "https://github.com/Francisco-BT/ChallengeServer#readme",
-  "dependencies": {
-    "express": "^4.17.1",
-    "jest": "^27.1.0"
-  }
+	"name": "ChallengeServer",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "jest",
+		"test:related": "jest --bail --findRelatedTest"
+	},
+	"lint-staged": {
+		"src/**/*.js": [
+			"prettier --write",
+			"eslint --fix",
+			"npm run test:related"
+		]
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Francisco-BT/ChallengeServer.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/Francisco-BT/ChallengeServer/issues"
+	},
+	"homepage": "https://github.com/Francisco-BT/ChallengeServer#readme",
+	"dependencies": {
+		"express": "^4.17.1"
+	},
+	"devDependencies": {
+		"@types/express": "^4.17.13",
+		"@types/jest": "^27.0.1",
+		"eslint": "^7.32.0",
+		"husky": "^7.0.2",
+		"jest": "^27.1.0",
+		"lint-staged": "^11.1.2",
+		"prettier": "2.3.2"
+	}
 }
