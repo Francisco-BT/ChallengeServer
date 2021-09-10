@@ -5,12 +5,6 @@ class User extends Model {}
 
 User.init(
 	{
-		id: {
-			type: DataTypes.INTEGER,
-			autoIncrement: true,
-			primaryKey: true,
-			allowNull: false,
-		},
 		name: {
 			type: DataTypes.STRING,
 			allowNull: false,
@@ -31,7 +25,7 @@ User.init(
 			type: DataTypes.STRING,
 		},
 	},
-	{ sequelize, modelName: 'user' }
+	{ sequelize, modelName: 'users' }
 );
 
 module.exports = User;
