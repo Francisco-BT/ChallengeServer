@@ -1,4 +1,4 @@
 module.exports = {
-	BaseController: require('./BaseController'),
-	RoleController: require('./Role'),
+  BaseController: require('./BaseController'),
+  RoleController: require('./Role'),
 };

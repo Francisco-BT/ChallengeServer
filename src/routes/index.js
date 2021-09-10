@@ -1,3 +1,3 @@
 module.exports = {
-	routesV1: require('./v1'),
+  routesV1: require('./v1'),
 };

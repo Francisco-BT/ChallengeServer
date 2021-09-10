@@ -1,3 +1,3 @@
 module.exports = {
-	sequelize: require('./database'),
+  sequelize: require('./database'),
 };

@@ -1,7 +1,7 @@
 class BaseController {
-	constructor(sequelizeModel) {
-		this._sequelizeModel = sequelizeModel;
-	}
+  constructor(sequelizeModel) {
+    this._sequelizeModel = sequelizeModel;
+  }
 }
 
 module.exports = BaseController;
