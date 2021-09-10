@@ -5,6 +5,7 @@ const { routesV1 } = require('./routes');
 const app = express();
 app.use(express.json());
 
+app.get('/', (req, res) => res.send({ message: 'Welcome!' }));
 app.use(routesV1.path, routesV1.router);
 
 app.post('/api/v1/users', async (req, res) => {
