@@ -6,8 +6,12 @@ class RoleController extends BaseController {
 	}
 
 	async getRoles(req, res) {
-		const roles = await this._sequelizeModel.findAll();
-		res.status(200).json(roles);
+		try {
+			const roles = await this._sequelizeModel.findAll();
+			res.status(200).json(roles);
+		} catch {
+			res.status(500).send({ message: 'Error getting list of roles' });
+		}
 	}
 }
 

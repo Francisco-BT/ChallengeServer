@@ -1,6 +1,5 @@
 const { RoleController, BaseController } = require('../../src/controllers');
 const { createResponse } = require('node-mocks-http');
-const { sequelize } = require('../../src/services');
 
 describe('Role Controller Class', () => {
 	it('should create new role controller instance', () => {
