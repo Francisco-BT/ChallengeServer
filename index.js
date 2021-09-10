@@ -1,2 +1,4 @@
 const app = require('./src/app');
-app.listen(3000, () => console.log('Server running on port: 3000'));
+const { PORT } = require('./src/config');
+
+app.listen(PORT, () => console.log(`Server running on port: ${PORT}`));

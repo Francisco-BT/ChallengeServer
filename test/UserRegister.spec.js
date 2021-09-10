@@ -11,6 +11,8 @@ beforeEach(async () => {
 	await User.destroy({ truncate: true });
 });
 
+afterAll(async () => await sequelize.close());
+
 describe('User Register', () => {
 	async function postValidUser() {
 		return await request(app).post('/api/v1/users').send({
