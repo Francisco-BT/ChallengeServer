@@ -51,7 +51,6 @@ describe('Roles API V1', () => {
     });
 
     it('should returns only id, name and description per role', async () => {
-      jest.restoreAllMocks();
       await Role.create({ name: 'GOD', description: 'GOD role' });
       const response = await requestRoles();
       const sut = response.body[0];
