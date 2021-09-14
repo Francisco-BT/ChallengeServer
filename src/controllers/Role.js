@@ -1,18 +1,19 @@
 const BaseController = require('./BaseController');
+const { APIException } = require('../utils/errors');
 
 class RoleController extends BaseController {
   constructor(model) {
     super(model);
   }
 
-  async getRoles(req, res) {
+  async getRoles(req, res, next) {
     try {
       const roles = await this._sequelizeModel.findAll({
         attributes: ['id', 'name', 'description'],
       });
       res.status(200).json(roles);
     } catch (error) {
-      res.status(500).send({ message: 'Error getting list of roles' });
+      next(new APIException('Error getting list of roles'));
     }
   }
 }

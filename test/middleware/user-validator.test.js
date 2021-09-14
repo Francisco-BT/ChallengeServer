@@ -1,5 +1,6 @@
 const { createRequest, createResponse } = require('node-mocks-http');
 const { newUserValidator } = require('../../src/middlewares');
+const { ValidationsException } = require('../../src/utils/errors');
 
 let next = jest.fn(),
   req = createRequest(),
@@ -131,13 +132,15 @@ describe('User Validators Middleware', () => {
         expectedMessage: 'CV Link must have an URL format',
       },
     ])(
-      `should return Bad Request - 400 with $expectedMessage if $field is $value`,
+      `should call next with ValidationsException with $expectedMessage if $field is $value`,
       async ({ field, value, expectedMessage }) => {
         req.body[field] = value;
         await invokeMiddlewares(newUserValidator());
 
-        expect(res.statusCode).toBe(400);
-        expect(res._getJSONData().errors[field]).toBe(expectedMessage);
+        const errors = next.mock.calls[0][0].errors;
+        expect(next).toHaveBeenCalled();
+        expect(next).toHaveBeenCalledWith(new ValidationsException());
+        expect(errors[field]).toBe(expectedMessage);
       }
     );
 

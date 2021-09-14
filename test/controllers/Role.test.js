@@ -1,5 +1,6 @@
-const { RoleController, BaseController } = require('../../src/controllers');
 const { createResponse } = require('node-mocks-http');
+const { RoleController, BaseController } = require('../../src/controllers');
+const { APIException } = require('../../src/utils/errors');
 
 describe.only('Role Controller Class', () => {
   it('should create new role controller instance', () => {
@@ -55,6 +56,22 @@ describe.only('Role Controller Class', () => {
       expect(Array.isArray(roles)).toBeTruthy();
       expect(roles).toHaveLength(2);
       expect(res._isEndCalled()).toBeTruthy();
+    });
+
+    it('should called next with APIError when fail', async () => {
+      const mockModel = {
+        findAll: jest
+          .fn()
+          .mockRejectedValue(new Error('Something went wrong!')),
+      };
+      sut = new RoleController(mockModel);
+      const next = jest.fn();
+      await sut.getRoles(null, res, next);
+
+      expect(next).toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(
+        new APIException('Error getting list of roles')
+      );
     });
   });
 });

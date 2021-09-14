@@ -1,4 +1,5 @@
 const { validationResult } = require('express-validator');
+const { ValidationsException } = require('../utils/errors');
 
 module.exports = (req, res, next) => {
   const validatorErrors = validationResult(req);
@@ -8,5 +9,5 @@ module.exports = (req, res, next) => {
   }
   const errors = {};
   validatorErrors.array().forEach(({ msg, param }) => (errors[param] = msg));
-  res.status(400).json({ errors });
+  next(new ValidationsException(errors));
 };
