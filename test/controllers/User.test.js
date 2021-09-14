@@ -1,5 +1,6 @@
 const { UserController } = require('../../src/controllers');
 const { createResponse, createRequest } = require('node-mocks-http');
+const { encrypt } = require('../../src/utils');
 
 let sut, res, mockUserModel, req;
 
@@ -9,7 +10,6 @@ beforeEach(() => {
       id: 1,
       name: 'Test',
       email: 'test1@mail.com',
-      password: 'p4ssw0rd',
     }),
   };
   res = createResponse();
@@ -31,18 +31,19 @@ describe('User Controller', () => {
       expect(typeof sut.create).toBe('function');
     });
 
-    it('should call User.create() to interact with the DB', () => {
-      sut.create(req, res);
+    it('should call User.create() to interact with the DB', async () => {
+      await sut.create(req, res);
       expect(mockUserModel.create).toHaveBeenCalled();
     });
 
-    it('should call User.create() with name, email and password', () => {
-      sut.create(req, res);
-      expect(mockUserModel.create).toHaveBeenCalledWith({
-        name: 'Test',
-        email: 'test1@mail.com',
-        password: 'p4ssw0rd',
-      });
+    it('should call User.create() with name, email and encrypted password', async () => {
+      await sut.create(req, res);
+      expect(mockUserModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Test', email: 'test1@mail.com' })
+      );
+      expect(mockUserModel.create).not.toHaveBeenCalledWith(
+        expect.objectContaining({ password: 'p4ssw0rd' })
+      );
     });
 
     it('should response Created - 201 on success', async () => {
@@ -58,7 +59,5 @@ describe('User Controller', () => {
       expect(userData.name).toBe('Test');
       expect(userData.email).toBe('test1@mail.com');
     });
-
-    it.skip('should save encrypted password', async () => {});
   });
 });

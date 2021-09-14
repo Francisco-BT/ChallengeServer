@@ -1,14 +1,9 @@
+const { UserController } = require('../../controllers');
+const { User } = require('../../models');
+
+const controller = new UserController(User);
 module.exports = (router) => {
-  router.post('/', (req, res) =>
-    res.status(201).send({
-      id: 1,
-      name: 'User',
-      email: 'user@mail.com',
-      englishLevel: null,
-      technicalKnowledge: null,
-      cvLink: null,
-    })
-  );
+  router.post('/', (req, res) => controller.create(req, res));
 
   return router;
 };

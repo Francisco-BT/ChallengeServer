@@ -1,7 +1,11 @@
 const { Model, DataTypes } = require('sequelize');
 const { sequelize } = require('../services');
 
-class User extends Model {}
+class User extends Model {
+  static englishLevels() {
+    return ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  }
+}
 
 User.init(
   {
@@ -16,7 +20,7 @@ User.init(
     },
     englishLevel: {
       type: DataTypes.ENUM,
-      values: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
+      values: User.englishLevels(),
     },
     technicalKnowledge: {
       type: DataTypes.TEXT,

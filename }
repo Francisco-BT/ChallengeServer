@@ -1,0 +1,59 @@
+const { createRequest, createResponse } = require('node-mocks-http');
+const { newUserValidator } = require('../../src/middlewares');
+
+let next = jest.fn(),
+  req = createRequest(),
+  res = createResponse();
+beforeEach(() => {
+  next = jest.fn();
+  req = createRequest();
+  res = createResponse();
+});
+
+describe.only('User Validators Middleware', () => {
+  describe('New User Middleware Validator', () => {
+    it('should have a newUserValidator function', () => {
+      expect(typeof newUserValidator).toBe('function');
+    });
+
+    it.each([
+      { field: 'name', value: null, expectedMessage: 'Name cannot be null' },
+    ])(
+      `should return Bad Request - 400 with $expectedMessage if $field is $value`,
+      async ({ field, value, expectedMessage }) => {
+        req.body[field] = value;
+        const validations = newUserValidator();
+        const totalValidations = validations.length;
+        const validateMiddleware = validations[totalValidations - 1];
+        await Promise.all(
+          validations
+            .slice(0, totalValidations - 1)
+            .map(
+              async (middleware) => await middleware(req, res, () => undefined)
+            )
+        );
+        await validateMiddleware(req, res, next);
+
+        console.log('Errors', res._getJSONData());
+        expect(res.statusCode).toBe(400);
+        expect(res._getJSONData().errors[field]).toBe(expectedMessage);
+      }
+    );
+
+    it.skip('should call next without args if name is defined and it has only letters', async () => {
+      req.body.name = 'My Name';
+      const validations = newUserValidator();
+      await Promise.all(
+        validations
+          .slice(0, validations.length - 1)
+          .map(
+            async (middleware) => await middleware(req, res, () => undefined)
+          )
+      );
+      await validations[validations.length - 1](req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith();
+    });
+  });
+});
