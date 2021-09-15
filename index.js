@@ -28,6 +28,8 @@ if (process.env.NODE_ENV !== 'test') {
         email: 'admin@admin.com',
         password: await encrypt('123456'),
       });
+      console.log('USERS: ', await User.findAll());
+      console.log('ROLES: ', await Role.findAll());
     } catch (error) {
       console.log('Error preparing the DB data');
     }

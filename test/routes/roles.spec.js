@@ -8,7 +8,7 @@ afterAll(async () => await sequelize.close());
 describe('Roles API V1', () => {
   describe('GET - /roles', () => {
     beforeEach(async () => {
-      await Role.destroy({ truncate: true });
+      await Role.destroy({ truncate: true, cascade: true });
     });
 
     const requestRoles = async () => {
