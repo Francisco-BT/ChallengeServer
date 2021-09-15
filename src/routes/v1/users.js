@@ -10,5 +10,9 @@ module.exports = (router) => {
 
   router.get('/', (req, res, next) => controller.getAll(req, res, next));
 
+  router.post('/auth', (req, res, next) =>
+    controller.authenticate(req, res, next)
+  );
+
   return router;
 };

@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../../src/app');
 const { User } = require('../../src/models');
+const { encrypt } = require('../../src/utils');
 
 beforeAll(async () => {
   await User.sync({ force: true });
@@ -17,7 +18,7 @@ const createUsers = async (quantity) => {
     users.push({
       name: `User ${number}`,
       email: `user${number}@mail.com`,
-      password: 'P4ssword',
+      password: await encrypt(`User${number}`),
       englishLevel: 'A1',
       cvLink: 'www.google.com',
     });
@@ -94,6 +95,33 @@ describe('Users API', () => {
       expect(response.status).toBe(500);
       expect(response.body.message).toBe('Internal Server Error');
       expect(response.body.timestamp).toBeGreaterThan(currentTime);
+    });
+  });
+
+  describe('POST - /api/v1/users/auth', () => {
+    beforeEach(async () => {
+      await createUsers(1);
+    });
+
+    const postAuth = async (email, password) =>
+      request(app).post('/api/v1/users/auth').send({ email, password });
+
+    it('should return 200 with a JWT token when valid credentials', async () => {
+      const response = await postAuth('user1@mail.com', 'User1');
+
+      expect(response.status).toBe(200);
+      expect(response.body.token).toBeDefined();
+      expect(typeof response.body.token).toBe('string');
+    });
+
+    it('should return 401 - Invalid Credentials if credentials are invalid', async () => {
+      const response = await postAuth(
+        'user1@mail.com',
+        'This is no the right password'
+      );
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe('Invalid Credentials');
     });
   });
 });

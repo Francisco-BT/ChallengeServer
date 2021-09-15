@@ -1,6 +1,6 @@
 const BaseController = require('./BaseController');
-const { encrypt } = require('../utils');
-const { APIException } = require('../utils/errors');
+const { encrypt, compareEncrypted, generateToken } = require('../utils');
+const { APIException, AuthenticationException } = require('../utils/errors');
 
 class UserController extends BaseController {
   constructor(model) {
@@ -24,6 +24,27 @@ class UserController extends BaseController {
     try {
       const users = await this._sequelizeModel.findAll();
       res.status(200).json(users.map((user) => this.parseUser(user)));
+    } catch {
+      next(new APIException());
+    }
+  }
+
+  async authenticate(req, res, next) {
+    try {
+      const { email, password } = req.body;
+      const user = await this._sequelizeModel.findOne({ where: { email } });
+
+      if (user) {
+        const isValidPassword = await compareEncrypted(password, user.password);
+        if (isValidPassword) {
+          return res.status(200).json({
+            id: user.id,
+            name: user.name,
+            token: generateToken({ id: user.id }),
+          });
+        }
+      }
+      next(new AuthenticationException());
     } catch {
       next(new APIException());
     }

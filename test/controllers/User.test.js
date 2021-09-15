@@ -1,6 +1,10 @@
-const { UserController } = require('../../src/controllers');
 const { createResponse, createRequest } = require('node-mocks-http');
-const { APIException } = require('../../src/utils/errors');
+const { UserController } = require('../../src/controllers');
+const { encrypt } = require('../../src/utils');
+const {
+  APIException,
+  AuthenticationException,
+} = require('../../src/utils/errors');
 
 let sut, res, mockUserModel, req, next;
 
@@ -136,6 +140,80 @@ describe('User Controller', () => {
 
       expect(next).toHaveBeenCalled();
       expect(next).toHaveBeenCalledWith(new APIException());
+    });
+  });
+
+  describe('Auth User', () => {
+    const authReturnedUser = {
+      id: 1,
+      email: 'user@me.com',
+      name: 'User',
+    };
+    beforeEach(async () => {
+      mockUserModel.findOne = jest.fn().mockResolvedValueOnce({
+        ...authReturnedUser,
+        password: await encrypt('MySuperPassword'),
+      });
+    });
+
+    it('should have an authenticate function', () => {
+      expect(typeof sut.authenticate).toBe('function');
+    });
+
+    it('should called User.findOne()', async () => {
+      await sut.authenticate(req, res, next);
+      expect(mockUserModel.findOne).toHaveBeenCalled();
+    });
+
+    it('should user a where clause to get user by req.body.email using User.findOne', async () => {
+      req.body.email = 'user@me.com';
+      await sut.authenticate(req, res, next);
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({
+        where: {
+          email: 'user@me.com',
+        },
+      });
+    });
+
+    it('should return call next with AuthenticationException if user not exist', async () => {
+      mockUserModel.findOne.mockResolvedValueOnce(null);
+      await sut.authenticate(req, res, next);
+      expect(next).toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(new AuthenticationException());
+    });
+
+    it('should call next with AuthenticationException if req.body.password does not match with user.password', async () => {
+      await sut.authenticate(req, res, next);
+      expect(next).toHaveBeenCalledWith(new AuthenticationException());
+    });
+
+    it('should call next with APIException if something went wrong', async () => {
+      mockUserModel.findOne = jest.fn().mockRejectedValueOnce(new Error());
+      await sut.authenticate(req, res, next);
+      expect(next).toHaveBeenCalledWith(new APIException());
+    });
+
+    it('should return 200 if user and password are correct', async () => {
+      req.body = {
+        email: 'user@me.com',
+        password: 'MySuperPassword',
+      };
+      await sut.authenticate(req, res, next);
+      expect(res.statusCode).toBe(200);
+      expect(res._isEndCalled()).toBeTruthy();
+    });
+
+    it('should return id, name and token in body if credentials are correct', async () => {
+      req.body = {
+        email: 'user@me.com',
+        password: 'MySuperPassword',
+      };
+      await sut.authenticate(req, res, next);
+
+      const body = res._getJSONData();
+      expect(Object.keys(body)).toEqual(['id', 'name', 'token']);
+      expect(body.id).toBe(authReturnedUser.id);
+      expect(body.name).toBe(authReturnedUser.name);
     });
   });
 });

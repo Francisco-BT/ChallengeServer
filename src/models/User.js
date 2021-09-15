@@ -18,6 +18,10 @@ User.init(
       unique: true,
       allowNull: false,
     },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     englishLevel: {
       type: DataTypes.ENUM,
       values: User.englishLevels(),
