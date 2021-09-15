@@ -1,6 +1,6 @@
 beforeEach(() => jest.resetModules());
 
-describe.only('Config module', () => {
+describe('Config module', () => {
   it('should set undefined to all the env variables is there is not a .env file for the environment', () => {
     process.env.NODE_ENV = 'unknown';
     expect(process.env.PORT).not.toBeDefined();

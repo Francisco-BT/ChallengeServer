@@ -28,7 +28,7 @@ describe('Error Handler Middleware', () => {
   });
 
   it('should return the message Internal Server Error if the message is not defined', () => {
-    errorHandler({}, req, res, next);
+    errorHandler(new APIException(), req, res, next);
     expect(res._getJSONData().message).toBe('Internal Server Error');
   });
 

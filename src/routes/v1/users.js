@@ -4,9 +4,11 @@ const { newUserValidator } = require('../../middlewares');
 
 const controller = new UserController(User);
 module.exports = (router) => {
-  router.post('/', newUserValidator(), (req, res) =>
-    controller.create(req, res)
+  router.post('/', newUserValidator(), (req, res, next) =>
+    controller.create(req, res, next)
   );
+
+  router.get('/', (req, res, next) => controller.getAll(req, res, next));
 
   return router;
 };

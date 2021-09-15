@@ -1,15 +1,16 @@
 const app = require('./src/app');
 const { PORT } = require('./src/config');
 const { sequelize } = require('./src/services');
-const { Role } = require('./src/models');
+const { Role, User } = require('./src/models');
+const { encrypt } = require('./src/utils');
 
 // TODO: replace this logic by sequelize's seeds and migrations
 if (process.env.NODE_ENV !== 'test') {
-  console.log('Enter if to fill db');
-  sequelize.sync({ force: true }).then(
-    () => {
-      console.log('End sync');
-      Role.bulkCreate([
+  (async () => {
+    try {
+      await sequelize.sync({ force: true });
+      console.log('End sequelize sync');
+      await Role.bulkCreate([
         {
           name: 'SuperAdmin',
           description: 'Special role with all the privileges',
@@ -19,13 +20,18 @@ if (process.env.NODE_ENV !== 'test') {
           name: 'Normal',
           description: 'Normal user just can edit his information',
         },
-      ]).then(
-        () => console.log('Create roles finished'),
-        (err) => console.log('Create roles error: ', err)
-      );
-    },
-    (err) => console.log('Error sync DB', err)
-  );
+      ]);
+      console.log('End roles bulk insert');
+      // TODO: add Role as SuperAdmin
+      await User.create({
+        name: 'Super Admin',
+        email: 'admin@admin.com',
+        password: await encrypt('123456'),
+      });
+    } catch (error) {
+      console.log('Error preparing the DB data');
+    }
+  })();
 }
 
 app.listen(PORT, () => console.log(`Server running on port: ${PORT}`));
