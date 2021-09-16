@@ -10,7 +10,7 @@ if (process.env.NODE_ENV !== 'test') {
     try {
       await sequelize.sync({ force: true });
       console.log('End sequelize sync');
-      await Role.bulkCreate([
+      const roles = await Role.bulkCreate([
         {
           name: 'SuperAdmin',
           description: 'Special role with all the privileges',
@@ -21,15 +21,15 @@ if (process.env.NODE_ENV !== 'test') {
           description: 'Normal user just can edit his information',
         },
       ]);
-      console.log('End roles bulk insert');
       // TODO: add Role as SuperAdmin
       await User.create({
         name: 'Super Admin',
         email: 'admin@admin.com',
         password: await encrypt('123456'),
+        roleId: roles[0].id
       });
-      console.log('USERS: ', await User.findAll());
-      console.log('ROLES: ', await Role.findAll());
+      // console.log('USERS: ', await User.findAll());
+      // console.log('ROLES: ', await Role.findAll());
     } catch (error) {
       console.log('Error preparing the DB data');
     }
