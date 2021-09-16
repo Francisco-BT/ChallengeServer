@@ -81,6 +81,19 @@ class UserController extends BaseController {
     }
   }
 
+  async deleteUser(req, res, next) {
+    try {
+      const user = await this._sequelizeModel.findByPk(req.params.id);
+      if (user) {
+        await user.destroy();
+        return res.sendStatus(204);
+      }
+      next(new BadRequestException());
+    } catch {
+      next(new APIException())
+    }
+  }
+
   parseUser(user) {
     return {
       id: user.id,

@@ -16,5 +16,9 @@ module.exports = (router) => {
 
   router.get('/:id', (req, res, next) => controller.getUser(req, res, next));
 
+  router.delete('/:id', (req, res, next) =>
+    controller.deleteUser(req, res, next)
+  );
+
   return router;
 };

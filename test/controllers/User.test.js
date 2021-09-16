@@ -5,10 +5,10 @@ const {
   APIException,
   AuthenticationException,
   ValidationsException,
-  BadRequestException
+  BadRequestException,
 } = require('../../src/utils/errors');
 
-let sut, res, req, next, mockUserModel, mockRoleModel, getRole;
+let sut, res, req, next, mockUserModel, mockRoleModel;
 const resolvedUser = {
   id: 1,
   name: 'Test',
@@ -17,7 +17,6 @@ const resolvedUser = {
 };
 
 beforeEach(() => {
-  getRole = jest.fn().mockResolvedValue({ id: 1, name: 'TestRole' });
   mockRoleModel = {
     findByPk: jest.fn().mockResolvedValueOnce({
       id: 1,
@@ -25,7 +24,7 @@ beforeEach(() => {
     }),
   };
   mockUserModel = {
-    create: jest.fn().mockResolvedValueOnce({ ...resolvedUser, getRole }),
+    create: jest.fn().mockResolvedValueOnce({ ...resolvedUser }),
     findAll: jest.fn().mockResolvedValueOnce([
       {
         id: 1,
@@ -44,32 +43,36 @@ beforeEach(() => {
         cvLink: 'www.google.com',
       },
     ]),
-    findByPk: jest
-      .fn()
-      .mockResolvedValueOnce({
-        ...resolvedUser,
-        englishLevel: 'A2',
-        password: '1234',
-        technicalKnowledge: null,
-        cvLink: null,
-        role: { id: 1, name: 'Role' },
-      }),
+    findByPk: jest.fn().mockResolvedValueOnce({
+      ...resolvedUser,
+      englishLevel: 'A2',
+      password: '1234',
+      technicalKnowledge: null,
+      cvLink: null,
+      role: { id: 1, name: 'Role' },
+    }),
   };
   res = createResponse();
   req = createRequest();
   sut = new UserController(mockUserModel, mockRoleModel);
   next = jest.fn();
+  req.params.id = 1;
 });
 
 describe('User Controller', () => {
   describe('Create User', () => {
+    let getRole;
     beforeEach(() => {
-      req.body = {
-        name: 'Test',
-        email: 'test1@mail.com',
-        password: 'p4ssw0rd',
-        roleId: 1,
-      };
+      getRole = jest.fn().mockResolvedValue({ id: 1, name: 'TestRole' });
+      (mockUserModel.create = jest
+        .fn()
+        .mockResolvedValueOnce({ ...resolvedUser, getRole })),
+        (req.body = {
+          name: 'Test',
+          email: 'test1@mail.com',
+          password: 'p4ssw0rd',
+          roleId: 1,
+        });
     });
 
     it('should have a method create()', () => {
@@ -282,10 +285,6 @@ describe('User Controller', () => {
   });
 
   describe('Get One User', () => {
-    beforeEach(() => {
-      req.params.id = 1;
-    })
-
     it('should have a getUser function', () => {
       expect(typeof sut.getUser).toBe('function');
     });
@@ -316,7 +315,7 @@ describe('User Controller', () => {
         'role',
       ]);
       expect(typeof body.role).toBe('string');
-      expect(body).not.toHaveProperty('password')
+      expect(body).not.toHaveProperty('password');
     });
 
     it('should call next with BadRequestException if the user not exist', async () => {
@@ -324,12 +323,51 @@ describe('User Controller', () => {
       mockUserModel.findByPk = jest.fn().mockResolvedValueOnce(null);
       await sut.getUser(req, res, next);
       expect(next).toHaveBeenCalledWith(new BadRequestException());
-    })
+    });
 
     it('should call next with APIException if something went wrong', async () => {
       mockUserModel.findByPk = jest.fn().mockRejectedValueOnce(new Error());
       await sut.getUser(req, res, next);
       expect(next).toHaveBeenCalledWith(new APIException());
-    })
+    });
+  });
+
+  describe('Delete User', () => {
+    let destroy;
+
+    beforeEach(() => {
+      destroy = jest.fn();
+      mockUserModel.findByPk = jest
+        .fn()
+        .mockReturnValueOnce({ ...resolvedUser, destroy });
+    });
+
+    it('should have a deleteUser function', () => {
+      expect(typeof sut.deleteUser).toBe('function');
+    });
+
+    it('should call User.findByPk with req.params.id and then call the destroy method', async () => {
+      await sut.deleteUser(req, res, next);
+      expect(mockUserModel.findByPk).toHaveBeenCalledWith(1);
+      expect(destroy).toHaveBeenCalled();
+    });
+
+    it('should response 200 if the user is deleted', async () => {
+      await sut.deleteUser(req, res, next);
+      expect(res.statusCode).toBe(204);
+      expect(res._isEndCalled()).toBeTruthy();
+    });
+
+    it('should call next with BadRequestException if the user not exist', async () => {
+      mockUserModel.findByPk = jest.fn().mockResolvedValueOnce(null);
+      await sut.deleteUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new BadRequestException());
+    });
+
+    it('should call next with APIException if something went wrong', async () => {
+      mockUserModel.findByPk = jest.fn().mockRejectedValue(new Error());
+      await sut.deleteUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new APIException());
+    });
   });
 });

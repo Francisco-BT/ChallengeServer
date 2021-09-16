@@ -143,7 +143,7 @@ describe('Users API', () => {
     });
   });
 
-  describe('GET - /api/v1/users/auth', () => {
+  describe('GET - /api/v1/users/:id', () => {
     const requestUserById = async (id) => {
       return await request(app).get(`/api/v1/users/${id}`);
     }
@@ -161,6 +161,24 @@ describe('Users API', () => {
       const response = await requestUserById(0);
       expect(response.status).toBe(400);
       expect(response.body.message).toBe('Invalid Request');
+    })
+  })
+
+  describe('DELETE - /api/v1/users/:id', () => {
+    it('should delete a user if exits', async () => {
+      const user = (await createUsers(2))[0];
+      const response = await request(app).delete(`/api/v1/users/${user.id}`);
+      const totalUsers = await User.count();
+
+      expect(response.status).toBe(204);
+      expect(totalUsers).toBe(1);
+    })
+
+    it('should responses 400 - Invalid request if the request is wrong', async () => {
+      const response = await request(app).delete('/api/v1/users/0');
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('Invalid Request');
+      expect(response.body).toHaveProperty('timestamp');
     })
   })
 });
