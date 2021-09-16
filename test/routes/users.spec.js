@@ -30,7 +30,8 @@ const createUsers = async (quantity) => {
     });
   }
 
-  await User.bulkCreate(users);
+  const usersInDB = await User.bulkCreate(users);
+  return usersInDB;
 };
 
 describe('Users API', () => {
@@ -141,4 +142,25 @@ describe('Users API', () => {
       expect(response.body.message).toBe('Invalid Credentials');
     });
   });
+
+  describe('GET - /api/v1/users/auth', () => {
+    const requestUserById = async (id) => {
+      return await request(app).get(`/api/v1/users/${id}`);
+    }
+
+    it('should return a user by his id', async () => {
+      const userInDB = (await createUsers(1))[0];
+      const response = await requestUserById(userInDB.id);
+      expect(response.status).toBe(200);
+      expect(response.body.id).toBe(userInDB.id);
+      expect(response.body.email).toBe(userInDB.email);
+      expect(response.body.role).toBe('Test');
+    })
+
+    it('should response 400 - if the user id not exist', async () => {
+      const response = await requestUserById(0);
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('Invalid Request');
+    })
+  })
 });

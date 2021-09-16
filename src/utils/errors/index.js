@@ -3,4 +3,5 @@ module.exports = {
   APIException: require('./APIException'),
   ValidationsException: require('./ValidationsException'),
   AuthenticationException: require('./AuthenticationException'),
+  BadRequestException: require('./BadRequestException'),
 };

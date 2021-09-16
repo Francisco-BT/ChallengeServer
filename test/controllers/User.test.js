@@ -5,9 +5,17 @@ const {
   APIException,
   AuthenticationException,
   ValidationsException,
+  BadRequestException
 } = require('../../src/utils/errors');
 
 let sut, res, req, next, mockUserModel, mockRoleModel, getRole;
+const resolvedUser = {
+  id: 1,
+  name: 'Test',
+  email: 'test1@mail.com',
+  role: 'TestRole',
+};
+
 beforeEach(() => {
   getRole = jest.fn().mockResolvedValue({ id: 1, name: 'TestRole' });
   mockRoleModel = {
@@ -17,13 +25,7 @@ beforeEach(() => {
     }),
   };
   mockUserModel = {
-    create: jest.fn().mockResolvedValueOnce({
-      id: 1,
-      name: 'Test',
-      email: 'test1@mail.com',
-      role: 'TestRole',
-      getRole,
-    }),
+    create: jest.fn().mockResolvedValueOnce({ ...resolvedUser, getRole }),
     findAll: jest.fn().mockResolvedValueOnce([
       {
         id: 1,
@@ -42,6 +44,16 @@ beforeEach(() => {
         cvLink: 'www.google.com',
       },
     ]),
+    findByPk: jest
+      .fn()
+      .mockResolvedValueOnce({
+        ...resolvedUser,
+        englishLevel: 'A2',
+        password: '1234',
+        technicalKnowledge: null,
+        cvLink: null,
+        role: { id: 1, name: 'Role' },
+      }),
   };
   res = createResponse();
   req = createRequest();
@@ -267,5 +279,57 @@ describe('User Controller', () => {
       expect(body.id).toBe(authReturnedUser.id);
       expect(body.name).toBe(authReturnedUser.name);
     });
+  });
+
+  describe('Get One User', () => {
+    beforeEach(() => {
+      req.params.id = 1;
+    })
+
+    it('should have a getUser function', () => {
+      expect(typeof sut.getUser).toBe('function');
+    });
+
+    it('should call User.findByPk with the req.params.id value and the include object with the role', async () => {
+      await sut.getUser(req, res, next);
+      expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {
+        include: 'role',
+      });
+    });
+
+    it('should return a 200 status in the response', async () => {
+      await sut.getUser(req, res, next);
+      expect(res.statusCode).toBe(200);
+      expect(res._isEndCalled()).toBeTruthy();
+    });
+
+    it('should return a user id, name, email, englishLevel, technicalKnowledge, cvLink and role in the response body', async () => {
+      await sut.getUser(req, res, next);
+      const body = res._getJSONData();
+      expect(Object.keys(body)).toEqual([
+        'id',
+        'name',
+        'email',
+        'englishLevel',
+        'technicalKnowledge',
+        'cvLink',
+        'role',
+      ]);
+      expect(typeof body.role).toBe('string');
+      expect(body).not.toHaveProperty('password')
+    });
+
+    it('should call next with BadRequestException if the user not exist', async () => {
+      req.param.id = -1;
+      mockUserModel.findByPk = jest.fn().mockResolvedValueOnce(null);
+      await sut.getUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new BadRequestException());
+    })
+
+    it('should call next with APIException if something went wrong', async () => {
+      mockUserModel.findByPk = jest.fn().mockRejectedValueOnce(new Error());
+      await sut.getUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new APIException());
+    })
   });
 });

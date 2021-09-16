@@ -14,5 +14,7 @@ module.exports = (router) => {
     controller.authenticate(req, res, next)
   );
 
+  router.get('/:id', (req, res, next) => controller.getUser(req, res, next));
+
   return router;
 };

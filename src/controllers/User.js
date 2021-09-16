@@ -1,6 +1,11 @@
 const BaseController = require('./BaseController');
 const { encrypt, compareEncrypted, generateToken } = require('../utils');
-const { APIException, AuthenticationException, ValidationsException } = require('../utils/errors');
+const {
+  APIException,
+  AuthenticationException,
+  ValidationsException,
+  BadRequestException,
+} = require('../utils/errors');
 
 class UserController extends BaseController {
   constructor(model, RoleModel) {
@@ -13,7 +18,7 @@ class UserController extends BaseController {
     try {
       const role = await this.RoleModel.findByPk(roleId);
       if (!role || role.name === 'SuperAdmin') {
-        return next(new ValidationsException({ 'roleId': 'Role is not valid'}))
+        return next(new ValidationsException({ roleId: 'Role is not valid' }));
       }
 
       const encryptedPassword = await encrypt(password);
@@ -53,6 +58,24 @@ class UserController extends BaseController {
         }
       }
       next(new AuthenticationException());
+    } catch {
+      next(new APIException());
+    }
+  }
+
+  async getUser(req, res, next) {
+    try {
+      const { id } = req.params;
+      const user = await this._sequelizeModel.findByPk(parseInt(id, 10), {
+        include: 'role',
+      });
+
+      if (user) {
+        return res
+          .status(200)
+          .json({ ...this.parseUser(user), role: user.role.name });
+      }
+      next(new BadRequestException());
     } catch {
       next(new APIException());
     }
