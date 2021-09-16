@@ -1,5 +1,6 @@
 const { Model, DataTypes } = require('sequelize');
 const { sequelize } = require('../services');
+const Role = require('./Role')
 
 class User extends Model {
   static englishLevels() {
@@ -35,5 +36,7 @@ User.init(
   },
   { sequelize, modelName: 'users' }
 );
+
+User.belongsTo(Role, {as: 'role', foreignKey: { name: 'roleId', allowNull: false }})
 
 module.exports = User;

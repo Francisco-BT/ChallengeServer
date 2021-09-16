@@ -131,6 +131,26 @@ describe('User Validators Middleware', () => {
         value: 'http://test',
         expectedMessage: 'CV Link must have an URL format',
       },
+      {
+        field: 'roleId',
+        value: null,
+        expectedMessage: 'Role cannot be null'
+      },
+      {
+        field: 'roleId',
+        value: 'asdasda',
+        expectedMessage: 'Role is not valid'
+      },
+      {
+        field: 'roleId',
+        value: -1,
+        expectedMessage: 'Role is not valid'
+      },
+      {
+        field: 'roleId',
+        value: 0,
+        expectedMessage: 'Role is not valid'
+      }
     ])(
       `should call next with ValidationsException with $expectedMessage if $field is $value`,
       async ({ field, value, expectedMessage }) => {
@@ -144,11 +164,12 @@ describe('User Validators Middleware', () => {
       }
     );
 
-    it('should call next without args if name, password and email are correct', async () => {
+    it('should call next without args if name, password, role and email are correct', async () => {
       req.body = {
         name: 'Francisco Bernabe',
         email: 'francisco@me.com',
         password: 'P4ssw0rd',
+        roleId: 2
       };
       await invokeMiddlewares(newUserValidator());
 

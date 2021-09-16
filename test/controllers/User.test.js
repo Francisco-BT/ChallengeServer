@@ -4,16 +4,25 @@ const { encrypt } = require('../../src/utils');
 const {
   APIException,
   AuthenticationException,
+  ValidationsException,
 } = require('../../src/utils/errors');
 
-let sut, res, mockUserModel, req, next;
-
+let sut, res, req, next, mockUserModel, mockRoleModel, getRole;
 beforeEach(() => {
+  getRole = jest.fn().mockResolvedValue({ id: 1, name: 'TestRole' });
+  mockRoleModel = {
+    findByPk: jest.fn().mockResolvedValueOnce({
+      id: 1,
+      name: 'TestRole',
+    }),
+  };
   mockUserModel = {
     create: jest.fn().mockResolvedValueOnce({
       id: 1,
       name: 'Test',
       email: 'test1@mail.com',
+      role: 'TestRole',
+      getRole,
     }),
     findAll: jest.fn().mockResolvedValueOnce([
       {
@@ -36,7 +45,7 @@ beforeEach(() => {
   };
   res = createResponse();
   req = createRequest();
-  sut = new UserController(mockUserModel);
+  sut = new UserController(mockUserModel, mockRoleModel);
   next = jest.fn();
 });
 
@@ -47,6 +56,7 @@ describe('User Controller', () => {
         name: 'Test',
         email: 'test1@mail.com',
         password: 'p4ssw0rd',
+        roleId: 1,
       };
     });
 
@@ -59,10 +69,14 @@ describe('User Controller', () => {
       expect(mockUserModel.create).toHaveBeenCalled();
     });
 
-    it('should call User.create() with name, email and encrypted password', async () => {
+    it('should call User.create() with name, email, roleId and encrypted password', async () => {
       await sut.create(req, res);
       expect(mockUserModel.create).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'Test', email: 'test1@mail.com' })
+        expect.objectContaining({
+          name: 'Test',
+          email: 'test1@mail.com',
+          roleId: 1,
+        })
       );
       expect(mockUserModel.create).not.toHaveBeenCalledWith(
         expect.objectContaining({ password: 'p4ssw0rd' })
@@ -89,6 +103,44 @@ describe('User Controller', () => {
 
       expect(next).toHaveBeenCalled();
       expect(next).toHaveBeenCalledWith(new APIException());
+    });
+
+    it('should call User.create and then the method getRole', async () => {
+      await sut.create(req, res, next);
+      expect(getRole).toHaveBeenCalled();
+    });
+
+    it('should return role name on success', async () => {
+      await sut.create(req, res);
+      const userData = res._getJSONData();
+      expect(userData).toHaveProperty('role');
+      expect(userData.role).toBe('TestRole');
+    });
+
+    it('should call Role.findByPk with the roleId received in the request', async () => {
+      await sut.create(req, res);
+      expect(mockRoleModel.findByPk).toHaveBeenCalledWith(req.body.roleId);
+    });
+
+    it('should call next with ValidationsExepction if the role not exist', async () => {
+      mockRoleModel.findByPk = jest.fn().mockResolvedValueOnce(null);
+      await sut.create(req, res, next);
+      expect(next).toHaveBeenCalledWith(
+        new ValidationsException({
+          roleId: 'Role is not valid',
+        })
+      );
+    });
+    it('should call next with ValidationsExepction if the role name is SuperAdmin', async () => {
+      mockRoleModel.findByPk = jest
+        .fn()
+        .mockResolvedValueOnce({ id: 1, name: 'SuperAdmin' });
+      await sut.create(req, res, next);
+      expect(next).toHaveBeenCalledWith(
+        new ValidationsException({
+          roleId: 'Role is not valid',
+        })
+      );
     });
   });
 

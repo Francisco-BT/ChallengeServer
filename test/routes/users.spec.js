@@ -1,17 +1,22 @@
 const request = require('supertest');
 const app = require('../../src/app');
-const { User } = require('../../src/models');
+const { User, Role } = require('../../src/models');
 const { encrypt } = require('../../src/utils');
+const { sequelize } = require('../../src/services');
 
 beforeAll(async () => {
   await User.sync({ force: true });
 });
 
+afterAll(async () => await sequelize.close());
+
 beforeEach(async () => {
   await User.destroy({ truncate: true });
+  await Role.destroy({ truncate: true, cascade: true });
 });
 
 const createUsers = async (quantity) => {
+  const role = await Role.create({ name: 'Test' });
   const users = [];
   for (let i = 0; i < quantity; i += 1) {
     const number = i + 1;
@@ -21,6 +26,7 @@ const createUsers = async (quantity) => {
       password: await encrypt(`User${number}`),
       englishLevel: 'A1',
       cvLink: 'www.google.com',
+      roleId: role.id,
     });
   }
 
@@ -33,14 +39,15 @@ describe('Users API', () => {
       return await request(app).post('/api/v1/users').send(user);
     }
 
-    it('should create a new user with only name, email and password', async () => {
-      const user = {
-        name: 'Francisco',
-        email: 'fbernabe@test.com',
-        password: 'P4ssw0rd',
-      };
-      const response = await postUser(user);
+    const validUserData = {
+      name: 'Francisco',
+      email: 'fbernabe@test.com',
+      password: 'P4ssw0rd',
+    };
 
+    it('should create a new user with only name, email, roleId and password', async () => {
+      const role = await Role.create({ name: 'TestRole' });
+      const response = await postUser({ ...validUserData, roleId: role.id });
       expect(response.status).toBe(201);
       expect(Object.keys(response.body)).toEqual([
         'id',
@@ -49,6 +56,7 @@ describe('Users API', () => {
         'englishLevel',
         'technicalKnowledge',
         'cvLink',
+        'role',
       ]);
     });
 
@@ -60,6 +68,15 @@ describe('Users API', () => {
         expect.objectContaining({ password: 'Password cannot be null' }),
         expect.objectContaining({ email: 'Email cannot be null' }),
         expect.objectContaining({ name: 'Name cannot be null' })
+      );
+    });
+
+    it('should return 400 with errors if the role is SuperAdmin', async () => {
+      const role = await Role.create({ name: 'SuperAdmin' });
+      const response = await postUser({ ...validUserData, roleId: role.id });
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toEqual(
+        expect.objectContaining({ roleId: 'Role is not valid' })
       );
     });
   });

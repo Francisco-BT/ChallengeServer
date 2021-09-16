@@ -1,8 +1,8 @@
 const { UserController } = require('../../controllers');
-const { User } = require('../../models');
+const { User, Role } = require('../../models');
 const { newUserValidator } = require('../../middlewares');
 
-const controller = new UserController(User);
+const controller = new UserController(User, Role);
 module.exports = (router) => {
   router.post('/', newUserValidator(), (req, res, next) =>
     controller.create(req, res, next)

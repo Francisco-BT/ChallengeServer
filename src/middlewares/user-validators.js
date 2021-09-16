@@ -29,6 +29,10 @@ exports.newUserValidator = () => {
       .optional()
       .isURL()
       .withMessage('CV Link must have an URL format'),
+    notEmptyWithMessage(body('roleId'), 'Role cannot be null')
+      .isNumeric()
+      .isInt({ gt: 0 })
+      .withMessage('Role is not valid'),
     validate,
   ];
   return validations;
