@@ -8,6 +8,6 @@ module.exports = (req, res, next) => {
     return next();
   }
   const errors = {};
-  validatorErrors.array().forEach(({ msg, param }) => (errors[param] = msg));
+  validatorErrors.array().forEach(({ msg, param, location }) => (errors[param || location] = msg));
   next(new ValidationsException(errors));
 };

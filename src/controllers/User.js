@@ -66,10 +66,7 @@ class UserController extends BaseController {
   async getUser(req, res, next) {
     try {
       const { id } = req.params;
-      const user = await this._sequelizeModel.findByPk(parseInt(id, 10), {
-        include: 'role',
-      });
-
+      const user = await this.findUserById(id, { include: 'role' });
       if (user) {
         return res
           .status(200)
@@ -83,15 +80,43 @@ class UserController extends BaseController {
 
   async deleteUser(req, res, next) {
     try {
-      const user = await this._sequelizeModel.findByPk(req.params.id);
+      const { id } = req.params;
+      const user = await this.findUserById(id);
       if (user) {
         await user.destroy();
         return res.sendStatus(204);
       }
       next(new BadRequestException());
     } catch {
-      next(new APIException())
+      next(new APIException());
     }
+  }
+
+  async updateUser(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { name, englishLevel, cvLink, technicalKnowledge } = req.body;
+
+      const user = await this.findUserById(id, { include: 'role' });
+      if (user) {
+        user.name = this.pickValue(name, user.name);
+        user.englishLevel = this.pickValue(englishLevel, user.englishLevel);
+        user.cvLink = this.pickValue(cvLink, user.cvLink);
+        user.technicalKnowledge = this.pickValue(
+          technicalKnowledge,
+          user.technicalKnowledge
+        );
+        await user.save();
+        res.status(200).json({ ...this.parseUser(user), role: user.role });
+      }
+      next(new BadRequestException());
+    } catch {
+      next(new APIException());
+    }
+  }
+
+  pickValue(option1, option2) {
+    return option1 ? option1 : option2;
   }
 
   parseUser(user) {
@@ -103,6 +128,10 @@ class UserController extends BaseController {
       technicalKnowledge: user.technicalKnowledge,
       cvLink: user.cvLink,
     };
+  }
+
+  async findUserById(id, options = {}) {
+    return await this._sequelizeModel.findByPk(parseInt(id, 10), options);
   }
 }
 

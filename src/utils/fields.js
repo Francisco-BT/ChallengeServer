@@ -16,3 +16,5 @@ exports.compareEncrypted = async (text, encrypted, algorithm = bcrypt) => {
     return false;
   }
 };
+
+exports.isEmptyObject = (object) => Object.keys(object).length === 0;

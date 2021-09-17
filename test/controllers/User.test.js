@@ -13,6 +13,9 @@ const resolvedUser = {
   id: 1,
   name: 'Test',
   email: 'test1@mail.com',
+  englishLevel: 'A1',
+  cvLink: 'www.google.com',
+  technicalKnowledge: 'My technical knowledge',
   role: 'TestRole',
 };
 
@@ -64,15 +67,15 @@ describe('User Controller', () => {
     let getRole;
     beforeEach(() => {
       getRole = jest.fn().mockResolvedValue({ id: 1, name: 'TestRole' });
-      (mockUserModel.create = jest
+      mockUserModel.create = jest
         .fn()
-        .mockResolvedValueOnce({ ...resolvedUser, getRole })),
-        (req.body = {
-          name: 'Test',
-          email: 'test1@mail.com',
-          password: 'p4ssw0rd',
-          roleId: 1,
-        });
+        .mockResolvedValueOnce({ ...resolvedUser, getRole });
+      req.body = {
+        name: 'Test',
+        email: 'test1@mail.com',
+        password: 'p4ssw0rd',
+        roleId: 1,
+      };
     });
 
     it('should have a method create()', () => {
@@ -348,7 +351,7 @@ describe('User Controller', () => {
 
     it('should call User.findByPk with req.params.id and then call the destroy method', async () => {
       await sut.deleteUser(req, res, next);
-      expect(mockUserModel.findByPk).toHaveBeenCalledWith(1);
+      expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {});
       expect(destroy).toHaveBeenCalled();
     });
 
@@ -369,5 +372,109 @@ describe('User Controller', () => {
       await sut.deleteUser(req, res, next);
       expect(next).toHaveBeenCalledWith(new APIException());
     });
+  });
+
+  describe('Update User', () => {
+    let save;
+
+    beforeEach(() => {
+      save = jest.fn();
+      mockUserModel.findByPk = jest
+        .fn()
+        .mockResolvedValueOnce({ ...resolvedUser, save });
+    });
+
+    it('should have a updateUser function', () => {
+      expect(typeof sut.updateUser).toBe('function');
+    });
+
+    it('should calle User.findByPk with req.params.id and include object as second argument', async () => {
+      await sut.updateUser(req, res, next);
+      expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {
+        include: 'role',
+      });
+    });
+
+    it('should call the save method to update the user', async () => {
+      await sut.updateUser(req, res, next);
+      expect(save).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return 200 in the respose object', async () => {
+      await sut.updateUser(req, res, next);
+      expect(res.statusCode).toBe(200);
+      expect(res._isEndCalled()).toBeTruthy();
+    });
+
+    it.each`
+      field                   | newValue                            | expectedValue
+      ${'name'}               | ${'updatedName'}                    | ${'updatedName'}
+      ${'name'}               | ${null}                             | ${resolvedUser.name}
+      ${'englishLevel'}       | ${'C2'}                             | ${'C2'}
+      ${'englishLevel'}       | ${null}                             | ${resolvedUser.englishLevel}
+      ${'cvLink'}             | ${'www.updatedUrl.com'}             | ${'www.updatedUrl.com'}
+      ${'cvLink'}             | ${null}                             | ${resolvedUser.cvLink}
+      ${'technicalKnowledge'} | ${'TechnicalKnowledge was updated'} | ${'TechnicalKnowledge was updated'}
+      ${'technicalKnowledge'} | ${null}                             | ${resolvedUser.technicalKnowledge}
+    `(
+      'returns the user updated with the $field equals to $newValue',
+      async ({ field, newValue, expectedValue }) => {
+        req.body[field] = newValue;
+        await sut.updateUser(req, res, next);
+        const body = res._getJSONData();
+        expect(body[field]).toBe(expectedValue);
+      }
+    );
+
+    it('should update just the fields with not null values in req.body', async () => {
+      req.body = {
+        name: 'This field must be updated',
+        englishLevel: '',
+        cvLink: undefined,
+        technicalKnowledge: null,
+      };
+      await sut.updateUser(req, res, next);
+      const body = res._getJSONData();
+      expect(body.name).not.toBe(resolvedUser.name);
+      expect(body.name).toBe('This field must be updated');
+      expect(body.englishLevel).toBe(resolvedUser.englishLevel);
+      expect(body.cvLink).toBe(resolvedUser.cvLink);
+      expect(body.technicalKnowledge).toBe(resolvedUser.technicalKnowledge);
+    });
+
+    it('should not update the email even if it is in the req.body', async () => {
+      req.body.email = 'updatedemail@mail.com';
+      await sut.updateUser(req, res, next);
+      const email = res._getJSONData().email;
+      expect(email).not.toBe('updatedmail@mail.com');
+      expect(email).toBe(resolvedUser.email);
+    });
+
+    it('should return the user id, name, email, englishLevel, technicalKnowledge, cvLink and role in the response body', async () => {
+      await sut.updateUser(req, res, next);
+      const body = res._getJSONData();
+      expect(Object.keys(body)).toEqual([
+        'id',
+        'name',
+        'email',
+        'englishLevel',
+        'technicalKnowledge',
+        'cvLink',
+        'role',
+      ]);
+      expect(body).not.toHaveProperty('password');
+    });
+
+    it('should call next with BadRequestException if id is invalid', async () => {
+      req.params.id = 0;
+      await sut.updateUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new BadRequestException());
+    })
+
+    it('should call next with APIException if something strange happen', async () => {
+      mockUserModel.findByPk = jest.fn().mockRejectedValueOnce(new Error());
+      await sut.updateUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new APIException());
+    })
   });
 });
