@@ -1,12 +1,12 @@
 const { createResponse, createRequest } = require('node-mocks-http');
-const { UserController } = require('../../src/controllers');
-const { encrypt } = require('../../src/utils');
+const { UserController } = require('../../../src/controllers');
+const { encrypt } = require('../../../src/utils');
 const {
   APIException,
   AuthenticationException,
   ValidationsException,
   BadRequestException,
-} = require('../../src/utils/errors');
+} = require('../../../src/utils/errors');
 
 let sut, res, req, next, mockUserModel, mockRoleModel;
 const resolvedUser = {

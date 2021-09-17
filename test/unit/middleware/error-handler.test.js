@@ -1,6 +1,6 @@
 const { createResponse } = require('node-mocks-http');
-const { errorHandler } = require('../../src/middlewares');
-const { APIException } = require('../../src/utils/errors');
+const { errorHandler } = require('../../../src/middlewares');
+const { APIException } = require('../../../src/utils/errors');
 
 describe('Error Handler Middleware', () => {
   let req,

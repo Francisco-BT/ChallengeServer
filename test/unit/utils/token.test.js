@@ -1,4 +1,4 @@
-const { generateToken } = require('../../src/utils');
+const { generateToken } = require('../../../src/utils');
 
 describe('Token Utilities', () => {
   describe('Generate Token', () => {

@@ -2,8 +2,8 @@ const { createRequest, createResponse } = require('node-mocks-http');
 const {
   newUserValidator,
   updateUserValidator,
-} = require('../../src/middlewares');
-const { ValidationsException } = require('../../src/utils/errors');
+} = require('../../../src/middlewares');
+const { ValidationsException } = require('../../../src/utils/errors');
 
 let next = jest.fn(),
   req = createRequest(),

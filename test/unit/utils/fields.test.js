@@ -1,5 +1,5 @@
-const { encrypt, compareEncrypted } = require('../../src/utils');
-const { EncryptException } = require('../../src/utils/errors');
+const { encrypt, compareEncrypted } = require('../../../src/utils');
+const { EncryptException } = require('../../../src/utils/errors');
 
 describe('Fields utils', () => {
   describe('Encrypt text util', () => {

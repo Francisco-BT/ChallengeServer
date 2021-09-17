@@ -1,6 +1,6 @@
 const { createResponse } = require('node-mocks-http');
-const { RoleController, BaseController } = require('../../src/controllers');
-const { APIException } = require('../../src/utils/errors');
+const { RoleController, BaseController } = require('../../../src/controllers');
+const { APIException } = require('../../../src/utils/errors');
 
 describe.only('Role Controller Class', () => {
   it('should create new role controller instance', () => {
