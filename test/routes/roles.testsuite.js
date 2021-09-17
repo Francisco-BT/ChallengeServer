@@ -3,6 +3,7 @@ const app = require('../../src/app');
 const { Role } = require('../../src/models');
 const { sequelize } = require('../../src/services');
 
+const roleTestsSuite = () => {
 afterAll(async () => await sequelize.close());
 
 describe('Roles API V1', () => {
@@ -62,3 +63,6 @@ describe('Roles API V1', () => {
     });
   });
 });
+};
+
+module.exports = roleTestsSuite;
