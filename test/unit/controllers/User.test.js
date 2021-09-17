@@ -381,7 +381,11 @@ describe('User Controller', () => {
       save = jest.fn();
       mockUserModel.findByPk = jest
         .fn()
-        .mockResolvedValueOnce({ ...resolvedUser, save });
+        .mockResolvedValueOnce({
+          ...resolvedUser,
+          save,
+          role: { id: 1, name: 'TestRole' },
+        });
     });
 
     it('should have a updateUser function', () => {
@@ -469,12 +473,12 @@ describe('User Controller', () => {
       req.params.id = 0;
       await sut.updateUser(req, res, next);
       expect(next).toHaveBeenCalledWith(new BadRequestException());
-    })
+    });
 
     it('should call next with APIException if something strange happen', async () => {
       mockUserModel.findByPk = jest.fn().mockRejectedValueOnce(new Error());
       await sut.updateUser(req, res, next);
       expect(next).toHaveBeenCalledWith(new APIException());
-    })
+    });
   });
 });

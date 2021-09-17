@@ -71,7 +71,7 @@ class CustomValidator {
   emptyBody() {
     return body()
       .custom((body) => !isEmptyObject(body))
-      .withMessage('There are not fields to update');
+      .withMessage('There are no fields to update');
   }
 }
 

@@ -182,6 +182,54 @@ const userTestsSuite = () => {
         expect(response.body).toHaveProperty('timestamp');
       });
     });
+
+    describe('PUT - /api/v1/users/:id', () => {
+      const putUSerRequest = async (id, payload = {}) => {
+        return await request(app).put(`/api/v1/users/${id}`).send(payload);
+      };
+
+      it('should update the user name, englishLevel, cvLink and technicalKnowledfe', async () => {
+        const user = (await createUsers(1))[0];
+        const response = await putUSerRequest(user.id, {
+          name: 'Updated Name',
+          englishLevel: 'C2',
+          cvLink: 'www.updatedcvlink.com',
+          technicalKnowledge: 'Updated TK',
+        });
+        expect(response.status).toBe(200);
+        expect(response.body.id).toBe(user.id);
+        expect(response.body.name).toBe('Updated Name');
+        expect(response.body.englishLevel).toBe('C2');
+        expect(response.body.cvLink).toBe('www.updatedcvlink.com');
+        expect(response.body.technicalKnowledge).toBe('Updated TK');
+      });
+
+      it('should respone 400 if no data is sending', async () => {
+        const response = await putUSerRequest(1);
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toEqual(
+          expect.objectContaining({ body: 'There are no fields to update' })
+        );
+      });
+
+      it('should no update fields that are do not have values provided', async () => {
+        const user = (await createUsers(1))[0];
+        const response = await putUSerRequest(user.id, {
+          technicalKnowledge: 'Javascript',
+          englishLevel: 'B1',
+        });
+        expect(response.body.name).toBe(user.name);
+        expect(response.body.cvLink).toBe(user.cvLink);
+        expect(response.body.englishLevel).toBe('B1');
+        expect(response.body.technicalKnowledge).toBe('Javascript');
+      });
+
+      it('should response 400 - Invalid Request if user id is not valid', async () => {
+        const response = await putUSerRequest(0, { englishLevel: 'B2'});
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe('Invalid Request');
+      })
+    });
   });
 };
 

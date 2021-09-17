@@ -107,7 +107,7 @@ class UserController extends BaseController {
           user.technicalKnowledge
         );
         await user.save();
-        res.status(200).json({ ...this.parseUser(user), role: user.role });
+        res.status(200).json({ ...this.parseUser(user), role: user.role.name });
       }
       next(new BadRequestException());
     } catch {

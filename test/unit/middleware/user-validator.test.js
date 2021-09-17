@@ -191,7 +191,7 @@ describe('User Validators Middleware', () => {
       await invokeMiddlewares(updateUserValidator());
       const errors = next.mock.calls[0][0].errors;
       expect(next).toHaveBeenCalledWith(new ValidationsException());
-      expect(errors.body).toBe('There are not fields to update');
+      expect(errors.body).toBe('There are no fields to update');
     });
 
     it.each([...commonValidationCases])(

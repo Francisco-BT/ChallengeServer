@@ -1,6 +1,6 @@
 const { UserController } = require('../../controllers');
 const { User, Role } = require('../../models');
-const { newUserValidator } = require('../../middlewares');
+const { newUserValidator, updateUserValidator } = require('../../middlewares');
 
 const controller = new UserController(User, Role);
 module.exports = (router) => {
@@ -19,6 +19,8 @@ module.exports = (router) => {
   router.delete('/:id', (req, res, next) =>
     controller.deleteUser(req, res, next)
   );
+
+  router.put('/:id', updateUserValidator(), (req, res, next) => controller.updateUser(req, res, next));
 
   return router;
 };
