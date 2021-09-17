@@ -3,12 +3,13 @@ const app = require('../../src/app');
 const { Role } = require('../../src/models');
 const { sequelize } = require('../../src/services');
 
+const roleTestsSuite = () => {
 afterAll(async () => await sequelize.close());
 
 describe('Roles API V1', () => {
   describe('GET - /roles', () => {
     beforeEach(async () => {
-      await Role.destroy({ truncate: true });
+      await Role.destroy({ truncate: true, cascade: true });
     });
 
     const requestRoles = async () => {
@@ -51,7 +52,6 @@ describe('Roles API V1', () => {
     });
 
     it('should returns only id, name and description per role', async () => {
-      jest.restoreAllMocks();
       await Role.create({ name: 'GOD', description: 'GOD role' });
       const response = await requestRoles();
       const sut = response.body[0];
@@ -63,3 +63,6 @@ describe('Roles API V1', () => {
     });
   });
 });
+};
+
+module.exports = roleTestsSuite;

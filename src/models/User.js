@@ -1,7 +1,12 @@
 const { Model, DataTypes } = require('sequelize');
 const { sequelize } = require('../services');
+const Role = require('./Role')
 
-class User extends Model {}
+class User extends Model {
+  static englishLevels() {
+    return ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  }
+}
 
 User.init(
   {
@@ -14,9 +19,13 @@ User.init(
       unique: true,
       allowNull: false,
     },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     englishLevel: {
       type: DataTypes.ENUM,
-      values: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
+      values: User.englishLevels(),
     },
     technicalKnowledge: {
       type: DataTypes.TEXT,
@@ -27,5 +36,7 @@ User.init(
   },
   { sequelize, modelName: 'users' }
 );
+
+User.belongsTo(Role, {as: 'role', foreignKey: { name: 'roleId', allowNull: false }})
 
 module.exports = User;
