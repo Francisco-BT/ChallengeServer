@@ -15,7 +15,6 @@ passport.use(
     async (jwt, done) => {
       try {
         const { id } = jwt;
-        console.log('JWT: ', jwt);
         const user = await User.findByPk(id, {
           include: 'role',
           attributes: ['id', 'name', 'roleId'],
@@ -24,14 +23,14 @@ passport.use(
         if (user) {
           return done(null, user);
         }
-        done(new ForbiddenException(), false);
+        return done(new ForbiddenException());
       } catch {
-        done(new ForbiddenException(), false);
+        return done(new ForbiddenException());
       }
     }
   )
 );
 
 module.exports = () => {
-  return passport.authenticate('jwt');
+  return passport.authenticate('jwt', { session: false });
 };

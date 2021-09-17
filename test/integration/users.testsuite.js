@@ -1,8 +1,8 @@
 const request = require('supertest');
 const app = require('../../src/app');
 const { User, Role } = require('../../src/models');
-const { encrypt } = require('../../src/utils');
 const { sequelize } = require('../../src/services');
+const { createUsers } = require('./utils');
 
 const userTestsSuite = () => {
   beforeAll(async () => {
@@ -15,25 +15,6 @@ const userTestsSuite = () => {
     await User.destroy({ truncate: true });
     await Role.destroy({ truncate: true, cascade: true });
   });
-
-  const createUsers = async (quantity) => {
-    const role = await Role.create({ name: 'Test' });
-    const users = [];
-    for (let i = 0; i < quantity; i += 1) {
-      const number = i + 1;
-      users.push({
-        name: `User ${number}`,
-        email: `user${number}@mail.com`,
-        password: await encrypt(`User${number}`),
-        englishLevel: 'A1',
-        cvLink: 'www.google.com',
-        roleId: role.id,
-      });
-    }
-
-    const usersInDB = await User.bulkCreate(users);
-    return usersInDB;
-  };
 
   describe('Users API', () => {
     describe('POST - /api/v1/users', () => {

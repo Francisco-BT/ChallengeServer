@@ -34,14 +34,13 @@ describe('Token Authorization Middleware', () => {
 
   it('should call User.findByPk if the token in req.headers is valid in the middleware', async () => {
     await tokenAuthorization()(req, res, next);
-
     expect(User.findByPk).toHaveBeenCalled();
   });
-
-  fit('should call next with ForbiddenException if user not exist', async () => {
-    User.findByPk = jest.fn().mockRejectedValue(new Error());
-    tokenAuthorization()(req, res, next);
-    console.log('Next: ', next.mock);
+  
+  it('should call next with ForbbidenException if user not exist', async () => {
+    User.findByPk = jest.fn().mockReturnValueOnce(null);
+    await tokenAuthorization()(req, res, next);
+    expect(next).toHaveBeenCalled();
     expect(next).toHaveBeenCalledWith(new ForbiddenException());
-  });
+  })
 });

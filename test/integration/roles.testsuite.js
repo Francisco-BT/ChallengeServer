@@ -2,67 +2,70 @@ const request = require('supertest');
 const app = require('../../src/app');
 const { Role } = require('../../src/models');
 const { sequelize } = require('../../src/services');
+const { getAuthToken } = require('./utils');
 
 const roleTestsSuite = () => {
-afterAll(async () => await sequelize.close());
+  afterAll(async () => await sequelize.close());
 
-describe('Roles API V1', () => {
-  describe('GET - /roles', () => {
-    beforeEach(async () => {
-      await Role.destroy({ truncate: true, cascade: true });
-    });
+  describe('Roles API V1', () => {
+    describe('GET - /roles', () => {
+      let token;
+      beforeEach(async () => {
+        await Role.destroy({ truncate: true, cascade: true });
+        token = await getAuthToken(request, app);
+      });
 
-    const requestRoles = async () => {
-      return await request(app).get('/api/v1/roles');
-    };
+      const requestRoles = async (token) => {
+        return await request(app)
+          .get('/api/v1/roles')
+          .auth(token, { type: 'bearer' });
+      };
 
-    it('should returns 200 OK', async () => {
-      const response = await requestRoles();
-      expect(response.statusCode).toBe(200);
-    });
+      it('should response 401 if there is no authentication token', async () => {
+        const response = await requestRoles('');
+        expect(response.status).toBe(401);
+      });
 
-    it('should returns an empty array if there are no roles', async () => {
-      const response = await requestRoles();
-      expect(response.body).toBeDefined();
-      expect(Array.isArray(response.body)).toBeTruthy();
-      expect(response.body).toHaveLength(0);
-    });
+      it('should returns 200 OK', async () => {
+        const response = await requestRoles(token);
+        expect(response.statusCode).toBe(200);
+      });
 
-    it('should returns an array of roles if there are in the db', async () => {
-      await Role.bulkCreate([{ name: 'GOD' }, { name: 'Admin' }]);
+      it('should returns an array of roles if there are in the db', async () => {
+        await Role.bulkCreate([{ name: 'GOD' }, { name: 'Admin' }]);
 
-      const response = await requestRoles();
-      expect(response.body).toHaveLength(2);
-      expect(response.body).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: 'GOD' }),
-          expect.objectContaining({ name: 'Admin' }),
-        ])
-      );
-    });
+        const response = await requestRoles(token);
+        expect(response.body.length).toBeGreaterThanOrEqual(2);
+        expect(response.body).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ name: 'GOD' }),
+            expect.objectContaining({ name: 'Admin' }),
+          ])
+        );
+      });
 
-    it('should returns 500 Internal server error when fails', async () => {
-      const original = Role.findAll;
-      Role.findAll = jest.fn().mockRejectedValue(new Error('DB Fail'));
+      it('should returns 500 Internal server error when fails', async () => {
+        const original = Role.findAll;
+        Role.findAll = jest.fn().mockRejectedValue(new Error('DB Fail'));
 
-      const response = await requestRoles();
-      expect(response.statusCode).toBe(500);
-      expect(response.body.message).toBe('Error getting list of roles');
-      Role.findAll = original;
-    });
+        const response = await requestRoles(token);
+        expect(response.statusCode).toBe(500);
+        expect(response.body.message).toBe('Error getting list of roles');
+        Role.findAll = original;
+      });
 
-    it('should returns only id, name and description per role', async () => {
-      await Role.create({ name: 'GOD', description: 'GOD role' });
-      const response = await requestRoles();
-      const sut = response.body[0];
+      it('should returns only id, name and description per role', async () => {
+        await Role.create({ name: 'GOD', description: 'GOD role' });
+        const response = await requestRoles(token);
+        const sut = response.body[0];
 
-      const properties = Object.keys(sut);
-      expect(sut).toHaveProperty('id');
-      expect(properties).toHaveLength(3);
-      expect(properties.sort()).toEqual(['description', 'id', 'name']);
+        const properties = Object.keys(sut);
+        expect(sut).toHaveProperty('id');
+        expect(properties).toHaveLength(3);
+        expect(properties.sort()).toEqual(['description', 'id', 'name']);
+      });
     });
   });
-});
 };
 
 module.exports = roleTestsSuite;
