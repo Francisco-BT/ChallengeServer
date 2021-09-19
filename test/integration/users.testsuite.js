@@ -1,24 +1,27 @@
 const request = require('supertest');
 const app = require('../../src/app');
 const { User, Role } = require('../../src/models');
-const { sequelize } = require('../../src/services');
 const { createUsers, getAuthToken, getFakeToken } = require('./utils');
 
 const userTestsSuite = () => {
-  let authToken;
-  beforeAll(async () => {
-    await User.sync({ force: true });
-  });
-
-  afterAll(async () => await sequelize.close());
-
-  beforeEach(async () => {
-    await User.destroy({ truncate: true });
-    await Role.destroy({ truncate: true, cascade: true });
-    authToken = await getAuthToken(request, app);
-  });
-
   describe('Users API', () => {
+    let authToken;
+    beforeAll(async () => {
+      await Role.sync({ force: true });
+      await User.sync({ force: true });
+    });
+
+    afterAll(async () => {
+      await User.destroy({ truncate: true });
+      await Role.destroy({ truncate: true, cascade: true });
+    });
+
+    beforeEach(async () => {
+      await User.destroy({ truncate: true });
+      await Role.destroy({ truncate: true, cascade: true });
+      authToken = await getAuthToken(request, app);
+    });
+
     describe('POST - /api/v1/users', () => {
       async function postUser(user, token = authToken) {
         return await request(app)
@@ -74,7 +77,13 @@ const userTestsSuite = () => {
       });
 
       it('should return 400 with errors if the role is SuperAdmin', async () => {
-        const role = await Role.create({ name: 'SuperAdmin' });
+        let role;
+        const superAdminInDb = await Role.findOne({
+          where: { name: 'SuperAdmin' },
+        });
+        role = superAdminInDb
+          ? superAdminInDb
+          : await Role.create({ name: 'SuperAdmin' });
         const response = await postUser({ ...validUserData, roleId: role.id });
         expect(response.status).toBe(400);
         expect(response.body.errors).toEqual(
@@ -83,12 +92,26 @@ const userTestsSuite = () => {
       });
     });
 
-    fdescribe('GET - /api/v1/users', () => {
+    describe('GET - /api/v1/users', () => {
       const requestUsers = async (token = authToken) => {
         return await request(app)
           .get('/api/v1/users')
           .auth(token, { type: 'bearer' });
       };
+
+      it('should response 401 - Unhautorized if no token is provided', async () => {
+        const response = await requestUsers({ id: 1 }, '');
+        expect(response.status).toBe(401);
+      });
+
+      it('should response 403 - if the token is correct but the user not exists', async () => {
+        const fakeToken = getFakeToken();
+        const response = await requestUsers(fakeToken);
+        expect(response.status).toBe(403);
+        expect(response.body.message).toBe(
+          'You are not able to access to the resource'
+        );
+      });
 
       it('should return 200 with the list of users in the DB', async () => {
         await createUsers(5, 'TestGetAll');
@@ -112,7 +135,9 @@ const userTestsSuite = () => {
 
       it('should return 500 - Internal Server Error with timestamp when an error happens', async () => {
         jest.spyOn(User, 'findByPk').mockResolvedValueOnce({ id: 1 });
-        jest.spyOn(User, 'findAll').mockRejectedValueOnce(new Error('This is an error'));
+        jest
+          .spyOn(User, 'findAll')
+          .mockRejectedValueOnce(new Error('This is an error'));
         const currentTime = new Date().getTime();
         const response = await requestUsers();
 
@@ -150,9 +175,22 @@ const userTestsSuite = () => {
     });
 
     describe('GET - /api/v1/users/:id', () => {
-      const requestUserById = async (id) => {
-        return await request(app).get(`/api/v1/users/${id}`);
+      const requestUserById = async (id, token = authToken) => {
+        return await request(app)
+          .get(`/api/v1/users/${id}`)
+          .auth(token, { type: 'bearer' });
       };
+
+      it('should response 401 if there is not token', async () => {
+        const response = await requestUserById(1, '');
+        expect(response.status).toBe(401);
+      });
+
+      it('should response 403 when the token is valid but the user is not', async () => {
+        const fakeToken = getFakeToken();
+        const response = await requestUserById(1, fakeToken);
+        expect(response.status).toBe(403);
+      });
 
       it('should return a user by his id', async () => {
         const userInDB = (await createUsers(1))[0];
@@ -160,7 +198,7 @@ const userTestsSuite = () => {
         expect(response.status).toBe(200);
         expect(response.body.id).toBe(userInDB.id);
         expect(response.body.email).toBe(userInDB.email);
-        expect(response.body.role).toBe('Test');
+        expect(response.body.role).toBe('Normal');
       });
 
       it('should response 400 - if the user id not exist', async () => {
@@ -171,17 +209,34 @@ const userTestsSuite = () => {
     });
 
     describe('DELETE - /api/v1/users/:id', () => {
+      const requestDelete = async (id, token = authToken) => {
+        return await request(app)
+          .delete(`/api/v1/users/${id}`)
+          .auth(token, { type: 'bearer' });
+      };
+
+      it('should response 401 if there is not token', async () => {
+        const response = await requestDelete(1, '');
+        expect(response.status).toBe(401);
+      });
+
+      it('should response 403 when the token is valid but the user is not', async () => {
+        const fakeToken = getFakeToken();
+        const response = await requestDelete(1, fakeToken);
+        expect(response.status).toBe(403);
+      });
+
       it('should delete a user if exits', async () => {
         const user = (await createUsers(2))[0];
-        const response = await request(app).delete(`/api/v1/users/${user.id}`);
-        const totalUsers = await User.count();
+        const response = await requestDelete(user.id);
 
+        const isInDb = await User.findByPk(user.id);
         expect(response.status).toBe(204);
-        expect(totalUsers).toBe(1);
+        expect(isInDb).toBeFalsy();
       });
 
       it('should responses 400 - Invalid request if the request is wrong', async () => {
-        const response = await request(app).delete('/api/v1/users/0');
+        const response = await requestDelete(0);
         expect(response.status).toBe(400);
         expect(response.body.message).toBe('Invalid Request');
         expect(response.body).toHaveProperty('timestamp');
@@ -189,9 +244,23 @@ const userTestsSuite = () => {
     });
 
     describe('PUT - /api/v1/users/:id', () => {
-      const putUSerRequest = async (id, payload = {}) => {
-        return await request(app).put(`/api/v1/users/${id}`).send(payload);
+      const putUSerRequest = async (id, payload = {}, token = authToken) => {
+        return await request(app)
+          .put(`/api/v1/users/${id}`)
+          .send(payload)
+          .auth(token, { type: 'bearer' });
       };
+
+      it('should response 401 if there is not token', async () => {
+        const response = await putUSerRequest(1, {}, '');
+        expect(response.status).toBe(401);
+      });
+
+      it('should response 403 when the token is valid but the user is not', async () => {
+        const fakeToken = getFakeToken();
+        const response = await putUSerRequest(1, {}, fakeToken);
+        expect(response.status).toBe(403);
+      });
 
       it('should update the user name, englishLevel, cvLink and technicalKnowledfe', async () => {
         const user = (await createUsers(1))[0];

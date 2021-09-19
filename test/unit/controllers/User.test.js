@@ -6,6 +6,7 @@ const {
   AuthenticationException,
   ValidationsException,
   BadRequestException,
+  ForbiddenException,
 } = require('../../../src/utils/errors');
 
 let sut, res, req, next, mockUserModel, mockRoleModel;
@@ -149,6 +150,7 @@ describe('User Controller', () => {
         })
       );
     });
+
     it('should call next with ValidationsExepction if the role name is SuperAdmin', async () => {
       mockRoleModel.findByPk = jest
         .fn()
@@ -349,9 +351,11 @@ describe('User Controller', () => {
       expect(typeof sut.deleteUser).toBe('function');
     });
 
-    it('should call User.findByPk with req.params.id and then call the destroy method', async () => {
+    it('should call User.findByPk with req.params.id and include object and then call the destroy method', async () => {
       await sut.deleteUser(req, res, next);
-      expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {});
+      expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {
+        include: 'role',
+      });
       expect(destroy).toHaveBeenCalled();
     });
 
@@ -372,6 +376,15 @@ describe('User Controller', () => {
       await sut.deleteUser(req, res, next);
       expect(next).toHaveBeenCalledWith(new APIException());
     });
+
+    it('should call next with UnauthorizedException if the user is SuperAdmin', async () => {
+      mockUserModel.findByPk = jest.fn().mockResolvedValueOnce({
+        ...resolvedUser,
+        role: { id: 1, name: 'SuperAdmin' },
+      });
+      await sut.deleteUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new ForbiddenException());
+    });
   });
 
   describe('Update User', () => {
@@ -379,13 +392,11 @@ describe('User Controller', () => {
 
     beforeEach(() => {
       save = jest.fn();
-      mockUserModel.findByPk = jest
-        .fn()
-        .mockResolvedValueOnce({
-          ...resolvedUser,
-          save,
-          role: { id: 1, name: 'TestRole' },
-        });
+      mockUserModel.findByPk = jest.fn().mockResolvedValueOnce({
+        ...resolvedUser,
+        save,
+        role: { id: 1, name: 'TestRole' },
+      });
     });
 
     it('should have a updateUser function', () => {

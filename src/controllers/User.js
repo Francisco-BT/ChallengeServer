@@ -5,6 +5,7 @@ const {
   AuthenticationException,
   ValidationsException,
   BadRequestException,
+  ForbiddenException,
 } = require('../utils/errors');
 
 class UserController extends BaseController {
@@ -81,8 +82,13 @@ class UserController extends BaseController {
   async deleteUser(req, res, next) {
     try {
       const { id } = req.params;
-      const user = await this.findUserById(id);
+      const user = await this.findUserById(id, { include: 'role' });
+
       if (user) {
+        if (user.role.name === 'SuperAdmin') {
+          return next(new ForbiddenException());
+        }
+
         await user.destroy();
         return res.sendStatus(204);
       }

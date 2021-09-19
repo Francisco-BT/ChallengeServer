@@ -10,6 +10,7 @@ require('dotenv').config({
 
 module.exports = {
   PORT: parseInt(env.PORT, 10) || 3000,
+  NODE_ENV: String(env.NODE_ENV || 'developtment'),
   POSTGRES_CONNECTION_STRING: String(env.POSTGRES_CONNECTION_STRING),
   JWT_SECRET: String(env.JWT_SECRET),
   JWT_ISSUER: String(env.JWT_ISSUER),

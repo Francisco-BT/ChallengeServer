@@ -1,12 +1,9 @@
 const request = require('supertest');
 const app = require('../../src/app');
 const { Role } = require('../../src/models');
-const { sequelize } = require('../../src/services');
 const { getAuthToken } = require('./utils');
 
 const roleTestsSuite = () => {
-  afterAll(async () => await sequelize.close());
-
   describe('Roles API V1', () => {
     describe('GET - /roles', () => {
       let token;
