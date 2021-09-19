@@ -2,9 +2,10 @@ const request = require('supertest');
 const app = require('../../src/app');
 const { User, Role } = require('../../src/models');
 const { sequelize } = require('../../src/services');
-const { createUsers } = require('./utils');
+const { createUsers, getAuthToken, getFakeToken } = require('./utils');
 
 const userTestsSuite = () => {
+  let authToken;
   beforeAll(async () => {
     await User.sync({ force: true });
   });
@@ -14,12 +15,16 @@ const userTestsSuite = () => {
   beforeEach(async () => {
     await User.destroy({ truncate: true });
     await Role.destroy({ truncate: true, cascade: true });
+    authToken = await getAuthToken(request, app);
   });
 
   describe('Users API', () => {
     describe('POST - /api/v1/users', () => {
-      async function postUser(user) {
-        return await request(app).post('/api/v1/users').send(user);
+      async function postUser(user, token = authToken) {
+        return await request(app)
+          .post('/api/v1/users')
+          .send(user)
+          .auth(token, { type: 'bearer' });
       }
 
       const validUserData = {
@@ -27,6 +32,20 @@ const userTestsSuite = () => {
         email: 'fbernabe@test.com',
         password: 'P4ssw0rd',
       };
+
+      it('should response 401 - Unhautorized if no token is provided', async () => {
+        const response = await postUser({ id: 1 }, '');
+        expect(response.status).toBe(401);
+      });
+
+      it('should response 403 - if the token is correct but the user not exists', async () => {
+        const fakeToken = getFakeToken();
+        const response = await postUser({ id: 1 }, fakeToken);
+        expect(response.status).toBe(403);
+        expect(response.body.message).toBe(
+          'You are not able to access to the resource'
+        );
+      });
 
       it('should create a new user with only name, email, roleId and password', async () => {
         const role = await Role.create({ name: 'TestRole' });
@@ -64,33 +83,38 @@ const userTestsSuite = () => {
       });
     });
 
-    describe('GET - /api/v1/users', () => {
+    fdescribe('GET - /api/v1/users', () => {
+      const requestUsers = async (token = authToken) => {
+        return await request(app)
+          .get('/api/v1/users')
+          .auth(token, { type: 'bearer' });
+      };
+
       it('should return 200 with the list of users in the DB', async () => {
-        await createUsers(5);
-        const response = await request(app).get('/api/v1/users');
+        await createUsers(5, 'TestGetAll');
+        const response = await requestUsers();
         expect(response.status).toBe(200);
         expect(Array.isArray(response.body)).toBeTruthy();
-        expect(response.body).toHaveLength(5);
+        expect(response.body.length).toBeGreaterThanOrEqual(5);
       });
 
-      it('should returns users with at least id, name, email', async () => {
-        await createUsers(1);
-        const response = await request(app).get('/api/v1/users');
+      it('should returns users with at least id, name, email, role', async () => {
+        await createUsers(1, 'TestGetAll');
+        const response = await requestUsers();
         const user = response.body[0];
         expect(user).toHaveProperty('id');
         expect(user).toHaveProperty('name');
         expect(user).toHaveProperty('email');
+        // expect(user).toHaveProperty('role');
         expect(user).not.toHaveProperty('createdAt');
         expect(user).not.toHaveProperty('password');
-        expect(response.body).toHaveLength(1);
       });
 
       it('should return 500 - Internal Server Error with timestamp when an error happens', async () => {
-        const originalFindAll = User.findAll;
-        User.findAll = jest.fn().mockRejectedValueOnce(new Error());
+        jest.spyOn(User, 'findByPk').mockResolvedValueOnce({ id: 1 });
+        jest.spyOn(User, 'findAll').mockRejectedValueOnce(new Error('This is an error'));
         const currentTime = new Date().getTime();
-        const response = await request(app).get('/api/v1/users');
-        User.findAll = originalFindAll;
+        const response = await requestUsers();
 
         expect(response.status).toBe(500);
         expect(response.body.message).toBe('Internal Server Error');
@@ -206,10 +230,10 @@ const userTestsSuite = () => {
       });
 
       it('should response 400 - Invalid Request if user id is not valid', async () => {
-        const response = await putUSerRequest(0, { englishLevel: 'B2'});
+        const response = await putUSerRequest(0, { englishLevel: 'B2' });
         expect(response.status).toBe(400);
         expect(response.body.message).toBe('Invalid Request');
-      })
+      });
     });
   });
 };

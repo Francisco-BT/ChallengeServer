@@ -3,6 +3,7 @@ const { createRequest, createResponse } = require('node-mocks-http');
 const { User } = require('../../../src/models');
 const { generateToken } = require('../../../src/utils');
 const { ForbiddenException } = require('../../../src/utils/errors');
+const passport = require('passport');
 
 describe('Token Authorization Middleware', () => {
   let req,
@@ -17,6 +18,7 @@ describe('Token Authorization Middleware', () => {
     const token = generateToken({ id: 1 });
     req.headers.authorization = `Bearer ${token}`;
     User.findByPk = jest.fn();
+    passport.initialize()(req, res, next);
   });
 
   afterAll(() => (User.findByPk = originalFindByPk));
@@ -36,11 +38,18 @@ describe('Token Authorization Middleware', () => {
     await tokenAuthorization()(req, res, next);
     expect(User.findByPk).toHaveBeenCalled();
   });
-  
+
   it('should call next with ForbbidenException if user not exist', async () => {
     User.findByPk = jest.fn().mockReturnValueOnce(null);
     await tokenAuthorization()(req, res, next);
     expect(next).toHaveBeenCalled();
     expect(next).toHaveBeenCalledWith(new ForbiddenException());
-  })
+  });
+
+  it('should call next with ForbbidenException if an error ocurred', async () => {
+    User.findByPk = jest.fn().mockReturnValueOnce(null);
+    await tokenAuthorization()(req, res, next);
+    expect(next).toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(new ForbiddenException());
+  });
 });
