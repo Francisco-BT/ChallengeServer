@@ -5,4 +5,5 @@ module.exports = {
   AuthenticationException: require('./AuthenticationException'),
   BadRequestException: require('./BadRequestException'),
   ForbiddenException: require('./ForbiddenException'),
+  TokenGenerationException: require('./TokenGenerationException'),
 };

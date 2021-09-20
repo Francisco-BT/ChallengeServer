@@ -11,11 +11,11 @@ describe('Token Authorization Middleware', () => {
     next,
     originalFindByPk = User.findByPk;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     req = createRequest();
     res = createResponse();
     next = jest.fn();
-    const token = generateToken({ id: 1 });
+    const token = await generateToken({ id: 1 }, { create: jest.fn() });
     req.headers.authorization = `Bearer ${token}`;
     User.findByPk = jest.fn();
     passport.initialize()(req, res, next);

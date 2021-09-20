@@ -54,7 +54,7 @@ class UserController extends BaseController {
           return res.status(200).json({
             id: user.id,
             name: user.name,
-            token: generateToken({ id: user.id }),
+            token: await generateToken({ id: user.id }),
           });
         }
       }

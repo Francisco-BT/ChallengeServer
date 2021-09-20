@@ -6,11 +6,6 @@ const { createUsers, getAuthToken, getFakeToken } = require('./utils');
 const userTestsSuite = () => {
   describe('Users API', () => {
     let authToken;
-    beforeAll(async () => {
-      await Role.sync({ force: true });
-      await User.sync({ force: true });
-    });
-
     afterAll(async () => {
       await User.destroy({ truncate: true });
       await Role.destroy({ truncate: true, cascade: true });
@@ -42,7 +37,7 @@ const userTestsSuite = () => {
       });
 
       it('should response 403 - if the token is correct but the user not exists', async () => {
-        const fakeToken = getFakeToken();
+        const fakeToken = await getFakeToken();
         const response = await postUser({ id: 1 }, fakeToken);
         expect(response.status).toBe(403);
         expect(response.body.message).toBe(
@@ -128,7 +123,7 @@ const userTestsSuite = () => {
       });
 
       it('should response 403 - if the token is correct but the user not exists', async () => {
-        const fakeToken = getFakeToken();
+        const fakeToken = await getFakeToken();
         const response = await requestUsers(fakeToken);
         expect(response.status).toBe(403);
         expect(response.body.message).toBe(
@@ -212,7 +207,7 @@ const userTestsSuite = () => {
       });
 
       it('should response 403 when the token is valid but the user is not', async () => {
-        const fakeToken = getFakeToken();
+        const fakeToken = await getFakeToken();
         const response = await requestUserById(1, fakeToken);
         expect(response.status).toBe(403);
       });
@@ -252,7 +247,7 @@ const userTestsSuite = () => {
       });
 
       it('should response 403 when the token is valid but the user is not', async () => {
-        const fakeToken = getFakeToken();
+        const fakeToken = await getFakeToken();
         const response = await requestDelete(1, fakeToken);
         expect(response.status).toBe(403);
       });
@@ -295,7 +290,7 @@ const userTestsSuite = () => {
       });
 
       it('should response 403 when the token is valid but the user is not', async () => {
-        const fakeToken = getFakeToken();
+        const fakeToken = await getFakeToken();
         const response = await putUSerRequest(1, {}, fakeToken);
         expect(response.status).toBe(403);
       });

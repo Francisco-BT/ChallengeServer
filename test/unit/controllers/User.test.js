@@ -8,6 +8,7 @@ const {
   BadRequestException,
   ForbiddenException,
 } = require('../../../src/utils/errors');
+const { sequelize } = require('../../../src/services');
 
 let sut, res, req, next, mockUserModel, mockRoleModel;
 const resolvedUser = {
@@ -19,6 +20,10 @@ const resolvedUser = {
   technicalKnowledge: 'My technical knowledge',
   role: 'TestRole',
 };
+
+afterAll(async () => {
+  await sequelize.close();
+});
 
 beforeEach(() => {
   mockRoleModel = {

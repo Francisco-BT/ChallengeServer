@@ -36,6 +36,6 @@ exports.getAuthToken = async (request, app, roleName = 'SuperAdmin') => {
   return response.body.token;
 };
 
-exports.getFakeToken = () => {
-  return generateToken({ id: 0 });
+exports.getFakeToken = async () => {
+  return await generateToken({ id: -1 });
 };
