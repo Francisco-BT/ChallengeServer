@@ -53,10 +53,11 @@ class UserController extends BaseController {
       if (user) {
         const isValidPassword = await compareEncrypted(password, user.password);
         if (isValidPassword) {
+          const token = await generateToken({ id: user.id }, this.TokenModel);
           return res.status(200).json({
             id: user.id,
             name: user.name,
-            token: await generateToken({ id: user.id }),
+            token,
           });
         }
       }
@@ -69,6 +70,10 @@ class UserController extends BaseController {
   async getUser(req, res, next) {
     try {
       const { id } = req.params;
+      if (id !== req.user.id && req.user.role === 'Normal') {
+        return next(new ForbiddenException());
+      }
+
       const user = await this.findUserById(id, { include: 'role' });
       if (user) {
         return res

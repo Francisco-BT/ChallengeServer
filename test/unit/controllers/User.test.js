@@ -24,6 +24,7 @@ describe('User Controller', () => {
 
   const mockTokenModel = {
     findOne: jest.fn().mockReturnThis(),
+    create: jest.fn(),
     destroy: jest.fn(),
   };
 
@@ -300,15 +301,35 @@ describe('User Controller', () => {
   });
 
   describe('Get One User', () => {
+    beforeEach(() => {
+      req.user = { role: 'SuperAdmin' };
+    });
+
     it('should have a getUser function', () => {
       expect(typeof sut.getUser).toBe('function');
     });
 
-    it('should call User.findByPk with the req.params.id value and the include object with the role', async () => {
+    it('should call User.findByPk with the req.params.id value and the include object with the role if req.user is the same id', async () => {
+      req.user = { id: 1 };
       await sut.getUser(req, res, next);
       expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {
         include: 'role',
       });
+    });
+
+    it('should call User.findByPk with the req.params.id value and the include object with the role if req.user does not have Normal Role', async () => {
+      req.user = { role: 'Admin' };
+      await sut.getUser(req, res, next);
+      expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {
+        include: 'role',
+      });
+    });
+
+    it('should called next if the req.user has role Normal but different id that req.params', async () => {
+      req.params.id = 100;
+      req.user = { role: 'Normal', id: 101 };
+      await sut.getUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new ForbiddenException());
     });
 
     it('should return a 200 status in the response', async () => {

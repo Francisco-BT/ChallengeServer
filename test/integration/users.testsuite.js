@@ -1,16 +1,17 @@
-const { User, Role } = require('../../src/models');
+const { User, Role, Token } = require('../../src/models');
 const { createUsers, getAuthToken, getFakeToken } = require('./utils');
+const { generateToken } = require('../../src/utils');
 
 const userTestsSuite = (agent) => {
   describe('Users API', () => {
     let authToken;
     afterAll(async () => {
-      await User.destroy({ truncate: true });
+      await User.destroy({ truncate: true, cascade: true });
       await Role.destroy({ truncate: true, cascade: true });
     });
 
     beforeEach(async () => {
-      await User.destroy({ truncate: true });
+      await User.destroy({ truncate: true, cascade: true });
       await Role.destroy({ truncate: true, cascade: true });
       authToken = await getAuthToken(agent);
     });
@@ -34,8 +35,9 @@ const userTestsSuite = (agent) => {
         expect(response.status).toBe(401);
       });
 
-      it('should response 403 - if the token is correct but the user not exists', async () => {
-        const fakeToken = await getFakeToken();
+      it('should response 403 - if the token is correct but not belong to the user that make the request', async () => {
+        const anotherUser = (await createUsers(1))[0];
+        const fakeToken = await getFakeToken(anotherUser.id);
         const response = await postUser({ id: 1 }, fakeToken);
         expect(response.status).toBe(403);
         expect(response.body.message).toBe(
@@ -118,8 +120,9 @@ const userTestsSuite = (agent) => {
         expect(response.status).toBe(401);
       });
 
-      it('should response 403 - if the token is correct but the user not exists', async () => {
-        const fakeToken = await getFakeToken();
+      it('should response 403 - if the token is correct but not belong to the user that make the request', async () => {
+        const anotherUser = (await createUsers(1))[0];
+        const fakeToken = await getFakeToken(anotherUser.id);
         const response = await requestUsers(fakeToken);
         expect(response.status).toBe(403);
         expect(response.body.message).toBe(
@@ -202,9 +205,25 @@ const userTestsSuite = (agent) => {
         expect(response.status).toBe(401);
       });
 
-      it('should response 403 when the token is valid but the user is not', async () => {
-        const fakeToken = await getFakeToken();
+      it('should response 403 - if the token is correct but not belong to the user that make the request and the user Role is Normal', async () => {
+        const anotherUser = (await createUsers(1))[0];
+        const fakeToken = await getFakeToken(anotherUser.id);
         const response = await requestUserById(1, fakeToken);
+        expect(response.status).toBe(403);
+        expect(response.body.message).toBe(
+          'You are not able to access to the resource'
+        );
+      });
+
+      it('should response 403 - if the token user role is not an Admin, SuperAdmin or Normal', async () => {
+        const invalidRoleToken = await getAuthToken(agent, 'RoleNotValid');
+        const tokenInDb = await Token.findOne({
+          where: { token: invalidRoleToken },
+        });
+        const response = await requestUserById(
+          tokenInDb.userId,
+          invalidRoleToken
+        );
         expect(response.status).toBe(403);
       });
 
@@ -242,10 +261,14 @@ const userTestsSuite = (agent) => {
         expect(response.status).toBe(401);
       });
 
-      it('should response 403 when the token is valid but the user is not', async () => {
-        const fakeToken = await getFakeToken();
+      it('should response 403 - if the token is correct but not belong to the user that make the request', async () => {
+        const anotherUser = (await createUsers(1))[0];
+        const fakeToken = await getFakeToken(anotherUser.id);
         const response = await requestDelete(1, fakeToken);
         expect(response.status).toBe(403);
+        expect(response.body.message).toBe(
+          'You are not able to access to the resource'
+        );
       });
 
       it('should delete a user if exits', async () => {
@@ -262,6 +285,18 @@ const userTestsSuite = (agent) => {
         expect(response.status).toBe(400);
         expect(response.body.message).toBe('Invalid Request');
         expect(response.body).toHaveProperty('timestamp');
+      });
+
+      it('should remove all the tokens belonging to the user deleted', async () => {
+        const user = (await createUsers(1))[0];
+        await generateToken({ id: user.id });
+        await generateToken({ id: user.id });
+        await generateToken({ id: user.id });
+        const response = await requestDelete(user.id);
+        const tokens = await Token.findAll({ where: { userId: user.id } });
+
+        expect(response.status).toBe(204);
+        expect(tokens).toHaveLength(0);
       });
     });
 
@@ -285,10 +320,14 @@ const userTestsSuite = (agent) => {
         expect(response.status).toBe(401);
       });
 
-      it('should response 403 when the token is valid but the user is not', async () => {
-        const fakeToken = await getFakeToken();
+      it('should response 403 - if the token is correct but not belong to the user that make the request', async () => {
+        const anotherUser = (await createUsers(1))[0];
+        const fakeToken = await getFakeToken(anotherUser.id);
         const response = await putUSerRequest(1, {}, fakeToken);
         expect(response.status).toBe(403);
+        expect(response.body.message).toBe(
+          'You are not able to access to the resource'
+        );
       });
 
       it('should update the user name, englishLevel, cvLink and technicalKnowledfe', async () => {

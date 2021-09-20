@@ -1,6 +1,7 @@
 const { Model, DataTypes } = require('sequelize');
 const { sequelize } = require('../services');
-const Role = require('./Role')
+const Role = require('./Role');
+const Token = require('./Token');
 
 class User extends Model {
   static englishLevels() {
@@ -37,6 +38,13 @@ User.init(
   { sequelize, modelName: 'users' }
 );
 
-User.belongsTo(Role, {as: 'role', foreignKey: { name: 'roleId', allowNull: false }})
+User.belongsTo(Role, {
+  as: 'role',
+  foreignKey: { name: 'roleId', allowNull: false },
+});
+User.hasMany(Token, {
+  foreignKey: { name: 'userId', allowNull: false },
+  onDelete: 'CASCADE',
+});
 
 module.exports = User;
