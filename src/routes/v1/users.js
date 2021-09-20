@@ -1,5 +1,5 @@
 const { UserController } = require('../../controllers');
-const { User, Role } = require('../../models');
+const { User, Role, Token } = require('../../models');
 const {
   newUserValidator,
   updateUserValidator,
@@ -7,7 +7,7 @@ const {
   roleAuthorization,
 } = require('../../middlewares');
 
-const controller = new UserController(User, Role);
+const controller = new UserController(User, Role, Token);
 module.exports = (router) => {
   router.post('/auth', (req, res, next) =>
     controller.authenticate(req, res, next)
@@ -15,6 +15,7 @@ module.exports = (router) => {
 
   // Protected routes below this line
   router.use(tokenAuthorization());
+  router.post('/logout', (req, res, next) => controller.logOut(req, res, next));
   router.get('/:id', (req, res, next) => controller.getUser(req, res, next));
 
   // Protect routes to be accessible by user with specific roles

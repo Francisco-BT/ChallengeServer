@@ -1,9 +1,7 @@
-const request = require('supertest');
-const app = require('../../src/app');
 const { User, Role } = require('../../src/models');
 const { createUsers, getAuthToken, getFakeToken } = require('./utils');
 
-const userTestsSuite = () => {
+const userTestsSuite = (agent) => {
   describe('Users API', () => {
     let authToken;
     afterAll(async () => {
@@ -14,12 +12,12 @@ const userTestsSuite = () => {
     beforeEach(async () => {
       await User.destroy({ truncate: true });
       await Role.destroy({ truncate: true, cascade: true });
-      authToken = await getAuthToken(request, app);
+      authToken = await getAuthToken(agent);
     });
 
     describe('POST - /api/v1/users', () => {
       async function postUser(user, token = authToken) {
-        return await request(app)
+        return await agent
           .post('/api/v1/users')
           .send(user)
           .auth(token, { type: 'bearer' });
@@ -46,13 +44,13 @@ const userTestsSuite = () => {
       });
 
       it('should response 403 - If role is Normal', async () => {
-        const normalUserToken = await getAuthToken(request, app, 'Normal');
+        const normalUserToken = await getAuthToken(agent, 'Normal');
         const response = await postUser({ id: 1 }, normalUserToken);
         expect(response.status).toBe(403);
       });
 
       it('should create a new user with only name, email, roleId and password if user role is Admin', async () => {
-        const adminUserToken = await getAuthToken(request, app, 'Admin');
+        const adminUserToken = await getAuthToken(agent, 'Admin');
         const role = await Role.create({ name: 'TestCreate' });
         const response = await postUser(
           { ...validUserData, roleId: role.id },
@@ -105,13 +103,11 @@ const userTestsSuite = () => {
 
     describe('GET - /api/v1/users', () => {
       const requestUsers = async (token = authToken) => {
-        return await request(app)
-          .get('/api/v1/users')
-          .auth(token, { type: 'bearer' });
+        return await agent.get('/api/v1/users').auth(token, { type: 'bearer' });
       };
 
       it('should response 403 if the request comes from a normal user', async () => {
-        const normalToken = await getAuthToken(request, app, 'Normal');
+        const normalToken = await getAuthToken(agent, 'Normal');
         const response = await requestUsers(normalToken);
 
         expect(response.status).toBe(403);
@@ -173,7 +169,7 @@ const userTestsSuite = () => {
       });
 
       const postAuth = async (email, password) =>
-        request(app).post('/api/v1/users/auth').send({ email, password });
+        await agent.post('/api/v1/users/auth').send({ email, password });
 
       it('should return 200 with a JWT token when valid credentials', async () => {
         const response = await postAuth('user1@mail.com', 'User1');
@@ -196,7 +192,7 @@ const userTestsSuite = () => {
 
     describe('GET - /api/v1/users/:id', () => {
       const requestUserById = async (id, token = authToken) => {
-        return await request(app)
+        return await agent
           .get(`/api/v1/users/${id}`)
           .auth(token, { type: 'bearer' });
       };
@@ -230,13 +226,13 @@ const userTestsSuite = () => {
 
     describe('DELETE - /api/v1/users/:id', () => {
       const requestDelete = async (id, token = authToken) => {
-        return await request(app)
+        return await agent
           .delete(`/api/v1/users/${id}`)
           .auth(token, { type: 'bearer' });
       };
 
       it('should response 403 if the user that make the request has a normal role', async () => {
-        const normalRoleToken = await getAuthToken(request, app, 'Normal');
+        const normalRoleToken = await getAuthToken(agent, 'Normal');
         const response = await requestDelete(1, normalRoleToken);
         expect(response.status).toBe(403);
       });
@@ -271,14 +267,14 @@ const userTestsSuite = () => {
 
     describe('PUT - /api/v1/users/:id', () => {
       const putUSerRequest = async (id, payload = {}, token = authToken) => {
-        return await request(app)
+        return await agent
           .put(`/api/v1/users/${id}`)
           .send(payload)
           .auth(token, { type: 'bearer' });
       };
 
       it('should response 403 if the user that make the request has role Normal', async () => {
-        const normalRoleToken = await getAuthToken(request, app, 'Normal');
+        const normalRoleToken = await getAuthToken(agent, 'Normal');
         const response = await putUSerRequest(1, {}, normalRoleToken);
 
         expect(response.status).toBe(403);

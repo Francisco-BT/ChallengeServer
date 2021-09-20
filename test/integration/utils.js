@@ -20,8 +20,9 @@ exports.createUsers = async (quantity) => {
   return usersInDB;
 };
 
-exports.getAuthToken = async (request, app, roleName = 'SuperAdmin') => {
-  const role = await Role.create({ name: roleName });
+exports.getAuthToken = async (agent, roleName = 'SuperAdmin') => {
+  const existRole = await Role.findOne({ where: { name: roleName } });
+  const role = existRole ? existRole : await Role.create({ name: roleName });
   const user = await User.create({
     name: 'Super Admin',
     email: `admin${new Date().getTime()}@admin.com`,
@@ -30,7 +31,7 @@ exports.getAuthToken = async (request, app, roleName = 'SuperAdmin') => {
     cvLink: 'www.google.com',
     roleId: role.id,
   });
-  const response = await request(app)
+  const response = await agent
     .post('/api/v1/users/auth')
     .send({ email: user.email, password: '1234' });
   return response.body.token;

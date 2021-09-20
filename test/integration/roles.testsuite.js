@@ -1,21 +1,17 @@
-const request = require('supertest');
-const app = require('../../src/app');
 const { Role } = require('../../src/models');
 const { getAuthToken } = require('./utils');
 
-const roleTestsSuite = () => {
+const roleTestsSuite = (agent) => {
   describe('Roles API V1', () => {
     describe('GET - /roles', () => {
       let token;
       beforeEach(async () => {
         await Role.destroy({ truncate: true, cascade: true });
-        token = await getAuthToken(request, app);
+        token = await getAuthToken(agent);
       });
 
       const requestRoles = async (token) => {
-        return await request(app)
-          .get('/api/v1/roles')
-          .auth(token, { type: 'bearer' });
+        return await agent.get('/api/v1/roles').auth(token, { type: 'bearer' });
       };
 
       it('should response 401 if there is no authentication token', async () => {

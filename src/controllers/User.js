@@ -7,11 +7,13 @@ const {
   BadRequestException,
   ForbiddenException,
 } = require('../utils/errors');
+const { getTokenFromHeaders } = require('../utils');
 
 class UserController extends BaseController {
-  constructor(model, RoleModel) {
+  constructor(model, RoleModel, TokenModel) {
     super(model);
     this.RoleModel = RoleModel;
+    this.TokenModel = TokenModel;
   }
 
   async create(req, res, next) {
@@ -116,6 +118,19 @@ class UserController extends BaseController {
         res.status(200).json({ ...UserController.parseUser(user, user.role) });
       }
       next(new BadRequestException());
+    } catch {
+      next(new APIException());
+    }
+  }
+
+  async logOut(req, res, next) {
+    try {
+      const rawToken = getTokenFromHeaders(req);
+      const tokenInDb = await this.TokenModel.findOne({
+        where: { token: rawToken },
+      });
+      await tokenInDb.destroy();
+      res.sendStatus(200);
     } catch {
       next(new APIException());
     }

@@ -10,65 +10,70 @@ const {
 } = require('../../../src/utils/errors');
 const { sequelize } = require('../../../src/services');
 
-let sut, res, req, next, mockUserModel, mockRoleModel;
-const resolvedUser = {
-  id: 1,
-  name: 'Test',
-  email: 'test1@mail.com',
-  englishLevel: 'A1',
-  cvLink: 'www.google.com',
-  technicalKnowledge: 'My technical knowledge',
-  role: 'TestRole',
-};
-
-afterAll(async () => {
-  await sequelize.close();
-});
-
-beforeEach(() => {
-  mockRoleModel = {
-    findByPk: jest.fn().mockResolvedValueOnce({
-      id: 1,
-      name: 'TestRole',
-    }),
+describe('User Controller', () => {
+  let sut, res, req, next, mockUserModel, mockRoleModel;
+  const resolvedUser = {
+    id: 1,
+    name: 'Test',
+    email: 'test1@mail.com',
+    englishLevel: 'A1',
+    cvLink: 'www.google.com',
+    technicalKnowledge: 'My technical knowledge',
+    role: 'TestRole',
   };
-  mockUserModel = {
-    create: jest.fn().mockResolvedValueOnce({ ...resolvedUser }),
-    findAll: jest.fn().mockResolvedValueOnce([
-      {
+
+  const mockTokenModel = {
+    findOne: jest.fn().mockReturnThis(),
+    destroy: jest.fn(),
+  };
+
+  afterAll(async () => {
+    await sequelize.close();
+  });
+
+  beforeEach(() => {
+    mockRoleModel = {
+      findByPk: jest.fn().mockResolvedValueOnce({
         id: 1,
-        name: 'User 1',
-        email: 'user1@mail.com',
-        englishLevel: null,
+        name: 'TestRole',
+      }),
+    };
+    mockUserModel = {
+      create: jest.fn().mockResolvedValueOnce({ ...resolvedUser }),
+      findAll: jest.fn().mockResolvedValueOnce([
+        {
+          id: 1,
+          name: 'User 1',
+          email: 'user1@mail.com',
+          englishLevel: null,
+          technicalKnowledge: null,
+          cvLink: null,
+        },
+        {
+          id: 2,
+          name: 'User 2',
+          email: 'user2@mail.com',
+          englishLevel: 'A2',
+          technicalKnowledge: null,
+          cvLink: 'www.google.com',
+        },
+      ]),
+      findByPk: jest.fn().mockResolvedValueOnce({
+        ...resolvedUser,
+        englishLevel: 'A2',
+        password: '1234',
         technicalKnowledge: null,
         cvLink: null,
-      },
-      {
-        id: 2,
-        name: 'User 2',
-        email: 'user2@mail.com',
-        englishLevel: 'A2',
-        technicalKnowledge: null,
-        cvLink: 'www.google.com',
-      },
-    ]),
-    findByPk: jest.fn().mockResolvedValueOnce({
-      ...resolvedUser,
-      englishLevel: 'A2',
-      password: '1234',
-      technicalKnowledge: null,
-      cvLink: null,
-      role: { id: 1, name: 'Role' },
-    }),
-  };
-  res = createResponse();
-  req = createRequest();
-  sut = new UserController(mockUserModel, mockRoleModel);
-  next = jest.fn();
-  req.params.id = 1;
-});
+        role: { id: 1, name: 'Role' },
+      }),
+    };
+    res = createResponse();
+    req = createRequest();
+    sut = new UserController(mockUserModel, mockRoleModel, mockTokenModel);
+    next = jest.fn();
+    req.params.id = 1;
+  });
 
-describe('User Controller', () => {
   describe('Create User', () => {
     let getRole;
     beforeEach(() => {
@@ -494,6 +499,40 @@ describe('User Controller', () => {
     it('should call next with APIException if something strange happen', async () => {
       mockUserModel.findByPk = jest.fn().mockRejectedValueOnce(new Error());
       await sut.updateUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new APIException());
+    });
+  });
+
+  describe('LogOut User', () => {
+    beforeEach(() => {
+      req.headers.authorization = `Bearer 3434`;
+    });
+
+    it('should have a logOut function', () => {
+      expect(typeof sut.logOut).toBe('function');
+    });
+
+    it('should call Token.findOne using the req.headers token', async () => {
+      await sut.logOut(req, res, next);
+      expect(mockTokenModel.findOne).toHaveBeenCalledWith({
+        where: { token: '3434' },
+      });
+    });
+
+    it('should call destroy if the token is returned by findOne', async () => {
+      await sut.logOut(req, res, next);
+      expect(mockTokenModel.destroy).toHaveBeenCalledWith();
+    });
+
+    it('should return 200 - OK if the token is deleted', async () => {
+      await sut.logOut(req, res, next);
+      expect(res.statusCode).toBe(200);
+      expect(res._isEndCalled()).toBeTruthy();
+    });
+
+    it('should call next with APIException if an error happen', async () => {
+      mockTokenModel.findOne.mockRejectedValueOnce(new Error());
+      await sut.logOut(req, res, next);
       expect(next).toHaveBeenCalledWith(new APIException());
     });
   });
