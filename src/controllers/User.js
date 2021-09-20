@@ -28,7 +28,7 @@ class UserController extends BaseController {
         password: encryptedPassword,
       });
       const userRole = await user.getRole();
-      res.status(201).json({ ...this.parseUser(user), role: userRole.name });
+      res.status(201).json({ ...UserController.parseUser(user, userRole) });
     } catch {
       next(new APIException());
     }
@@ -37,7 +37,7 @@ class UserController extends BaseController {
   async getAll(_, res, next) {
     try {
       const users = await this._sequelizeModel.findAll();
-      res.status(200).json(users.map((user) => this.parseUser(user)));
+      res.status(200).json(users.map((user) => UserController.parseUser(user)));
     } catch {
       next(new APIException());
     }
@@ -71,7 +71,7 @@ class UserController extends BaseController {
       if (user) {
         return res
           .status(200)
-          .json({ ...this.parseUser(user), role: user.role.name });
+          .json({ ...UserController.parseUser(user, user.role) });
       }
       next(new BadRequestException());
     } catch {
@@ -113,7 +113,7 @@ class UserController extends BaseController {
           user.technicalKnowledge
         );
         await user.save();
-        res.status(200).json({ ...this.parseUser(user), role: user.role.name });
+        res.status(200).json({ ...UserController.parseUser(user, user.role) });
       }
       next(new BadRequestException());
     } catch {
@@ -125,7 +125,7 @@ class UserController extends BaseController {
     return option1 ? option1 : option2;
   }
 
-  parseUser(user) {
+  static parseUser(user, role) {
     return {
       id: user.id,
       name: user.name,
@@ -133,6 +133,7 @@ class UserController extends BaseController {
       englishLevel: user.englishLevel,
       technicalKnowledge: user.technicalKnowledge,
       cvLink: user.cvLink,
+      role: role ? role.name : undefined,
     };
   }
 

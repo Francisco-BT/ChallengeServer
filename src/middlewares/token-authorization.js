@@ -3,6 +3,7 @@ const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const { JWT_ISSUER, JWT_SECRET } = require('../config');
 const { User } = require('../models');
 const { ForbiddenException } = require('../utils/errors');
+const { UserController } = require('../controllers');
 
 passport.use(
   new JwtStrategy(
@@ -21,7 +22,7 @@ passport.use(
         });
 
         if (user) {
-          return done(null, user);
+          return done(null, UserController.parseUser(user, user.role));
         }
         return done(new ForbiddenException());
       } catch {

@@ -20,11 +20,11 @@ exports.createUsers = async (quantity) => {
   return usersInDB;
 };
 
-exports.getAuthToken = async (request, app, roleName = "SuperAdmin") => {
+exports.getAuthToken = async (request, app, roleName = 'SuperAdmin') => {
   const role = await Role.create({ name: roleName });
   const user = await User.create({
     name: 'Super Admin',
-    email: 'admin@admin.com',
+    email: `admin${new Date().getTime()}@admin.com`,
     password: await encrypt('1234'),
     englishLevel: 'A1',
     cvLink: 'www.google.com',
@@ -32,7 +32,7 @@ exports.getAuthToken = async (request, app, roleName = "SuperAdmin") => {
   });
   const response = await request(app)
     .post('/api/v1/users/auth')
-    .send({ email: user.email, password: '1234'});
+    .send({ email: user.email, password: '1234' });
   return response.body.token;
 };
 

@@ -36,7 +36,7 @@ const userTestsSuite = () => {
         password: 'P4ssw0rd',
       };
 
-      it('should response 401 - Unhautorized if no token is provided', async () => {
+      it('should response 401 - Unauthorized if no token is provided', async () => {
         const response = await postUser({ id: 1 }, '');
         expect(response.status).toBe(401);
       });
@@ -50,9 +50,19 @@ const userTestsSuite = () => {
         );
       });
 
-      it('should create a new user with only name, email, roleId and password', async () => {
-        const role = await Role.create({ name: 'TestRole' });
-        const response = await postUser({ ...validUserData, roleId: role.id });
+      it('should response 403 - If role is Normal', async () => {
+        const normalUserToken = await getAuthToken(request, app, 'Normal');
+        const response = await postUser({ id: 1 }, normalUserToken);
+        expect(response.status).toBe(403);
+      });
+
+      it('should create a new user with only name, email, roleId and password if user role is Admin', async () => {
+        const adminUserToken = await getAuthToken(request, app, 'Admin');
+        const role = await Role.create({ name: 'TestCreate' });
+        const response = await postUser(
+          { ...validUserData, roleId: role.id },
+          adminUserToken
+        );
         expect(response.status).toBe(201);
         expect(Object.keys(response.body)).toEqual([
           'id',
@@ -63,6 +73,12 @@ const userTestsSuite = () => {
           'cvLink',
           'role',
         ]);
+      });
+
+      it('should create a new user with only name, email, roleId and password if user role is SuperAdmin', async () => {
+        const role = await Role.create({ name: 'TestCreate' });
+        const response = await postUser({ ...validUserData, roleId: role.id });
+        expect(response.status).toBe(201);
       });
 
       it('should not create a user with missing password, email or name', async () => {
@@ -99,7 +115,14 @@ const userTestsSuite = () => {
           .auth(token, { type: 'bearer' });
       };
 
-      it('should response 401 - Unhautorized if no token is provided', async () => {
+      it('should response 403 if the request comes from a normal user', async () => {
+        const normalToken = await getAuthToken(request, app, 'Normal');
+        const response = await requestUsers(normalToken);
+
+        expect(response.status).toBe(403);
+      });
+
+      it('should response 401 - Unauthorized if no token is provided', async () => {
         const response = await requestUsers({ id: 1 }, '');
         expect(response.status).toBe(401);
       });
@@ -134,7 +157,9 @@ const userTestsSuite = () => {
       });
 
       it('should return 500 - Internal Server Error with timestamp when an error happens', async () => {
-        jest.spyOn(User, 'findByPk').mockResolvedValueOnce({ id: 1 });
+        jest
+          .spyOn(User, 'findByPk')
+          .mockResolvedValueOnce({ id: 1, role: { name: 'SuperAdmin' } });
         jest
           .spyOn(User, 'findAll')
           .mockRejectedValueOnce(new Error('This is an error'));
@@ -215,6 +240,12 @@ const userTestsSuite = () => {
           .auth(token, { type: 'bearer' });
       };
 
+      it('should response 403 if the user that make the request has a normal role', async () => {
+        const normalRoleToken = await getAuthToken(request, app, 'Normal');
+        const response = await requestDelete(1, normalRoleToken);
+        expect(response.status).toBe(403);
+      });
+
       it('should response 401 if there is not token', async () => {
         const response = await requestDelete(1, '');
         expect(response.status).toBe(401);
@@ -250,6 +281,13 @@ const userTestsSuite = () => {
           .send(payload)
           .auth(token, { type: 'bearer' });
       };
+
+      it('should response 403 if the user that make the request has role Normal', async () => {
+        const normalRoleToken = await getAuthToken(request, app, 'Normal');
+        const response = await putUSerRequest(1, {}, normalRoleToken);
+
+        expect(response.status).toBe(403);
+      });
 
       it('should response 401 if there is not token', async () => {
         const response = await putUSerRequest(1, {}, '');
