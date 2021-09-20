@@ -2,7 +2,7 @@ const { createResponse } = require('node-mocks-http');
 const { RoleController, BaseController } = require('../../../src/controllers');
 const { APIException } = require('../../../src/utils/errors');
 
-describe.only('Role Controller Class', () => {
+describe('Role Controller Class', () => {
   it('should create new role controller instance', () => {
     const sut = new RoleController();
     expect(sut instanceof RoleController).toBeTruthy();

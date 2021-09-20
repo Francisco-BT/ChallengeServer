@@ -17,4 +17,8 @@ exports.compareEncrypted = async (text, encrypted, algorithm = bcrypt) => {
   }
 };
 
+exports.getTokenFromHeaders = (req) => {
+  return req.headers.authorization.split(' ')[1];
+};
+
 exports.isEmptyObject = (object) => Object.keys(object).length === 0;

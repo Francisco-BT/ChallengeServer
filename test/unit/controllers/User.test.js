@@ -6,63 +6,75 @@ const {
   AuthenticationException,
   ValidationsException,
   BadRequestException,
+  ForbiddenException,
 } = require('../../../src/utils/errors');
-
-let sut, res, req, next, mockUserModel, mockRoleModel;
-const resolvedUser = {
-  id: 1,
-  name: 'Test',
-  email: 'test1@mail.com',
-  englishLevel: 'A1',
-  cvLink: 'www.google.com',
-  technicalKnowledge: 'My technical knowledge',
-  role: 'TestRole',
-};
-
-beforeEach(() => {
-  mockRoleModel = {
-    findByPk: jest.fn().mockResolvedValueOnce({
-      id: 1,
-      name: 'TestRole',
-    }),
-  };
-  mockUserModel = {
-    create: jest.fn().mockResolvedValueOnce({ ...resolvedUser }),
-    findAll: jest.fn().mockResolvedValueOnce([
-      {
-        id: 1,
-        name: 'User 1',
-        email: 'user1@mail.com',
-        englishLevel: null,
-        technicalKnowledge: null,
-        cvLink: null,
-      },
-      {
-        id: 2,
-        name: 'User 2',
-        email: 'user2@mail.com',
-        englishLevel: 'A2',
-        technicalKnowledge: null,
-        cvLink: 'www.google.com',
-      },
-    ]),
-    findByPk: jest.fn().mockResolvedValueOnce({
-      ...resolvedUser,
-      englishLevel: 'A2',
-      password: '1234',
-      technicalKnowledge: null,
-      cvLink: null,
-      role: { id: 1, name: 'Role' },
-    }),
-  };
-  res = createResponse();
-  req = createRequest();
-  sut = new UserController(mockUserModel, mockRoleModel);
-  next = jest.fn();
-  req.params.id = 1;
-});
+const { sequelize } = require('../../../src/services');
 
 describe('User Controller', () => {
+  let sut, res, req, next, mockUserModel, mockRoleModel;
+  const resolvedUser = {
+    id: 1,
+    name: 'Test',
+    email: 'test1@mail.com',
+    englishLevel: 'A1',
+    cvLink: 'www.google.com',
+    technicalKnowledge: 'My technical knowledge',
+    role: 'TestRole',
+  };
+
+  const mockTokenModel = {
+    findOne: jest.fn().mockReturnThis(),
+    create: jest.fn(),
+    destroy: jest.fn(),
+  };
+
+  afterAll(async () => {
+    await sequelize.close();
+  });
+
+  beforeEach(() => {
+    mockRoleModel = {
+      findByPk: jest.fn().mockResolvedValueOnce({
+        id: 1,
+        name: 'TestRole',
+      }),
+    };
+    mockUserModel = {
+      create: jest.fn().mockResolvedValueOnce({ ...resolvedUser }),
+      findAll: jest.fn().mockResolvedValueOnce([
+        {
+          id: 1,
+          name: 'User 1',
+          email: 'user1@mail.com',
+          englishLevel: null,
+          technicalKnowledge: null,
+          cvLink: null,
+        },
+        {
+          id: 2,
+          name: 'User 2',
+          email: 'user2@mail.com',
+          englishLevel: 'A2',
+          technicalKnowledge: null,
+          cvLink: 'www.google.com',
+        },
+      ]),
+      findByPk: jest.fn().mockResolvedValueOnce({
+        ...resolvedUser,
+        englishLevel: 'A2',
+        password: '1234',
+        technicalKnowledge: null,
+        cvLink: null,
+        role: { id: 1, name: 'Role' },
+      }),
+    };
+    res = createResponse();
+    req = createRequest();
+    sut = new UserController(mockUserModel, mockRoleModel, mockTokenModel);
+    next = jest.fn();
+    req.params.id = '1';
+  });
+
   describe('Create User', () => {
     let getRole;
     beforeEach(() => {
@@ -149,6 +161,7 @@ describe('User Controller', () => {
         })
       );
     });
+
     it('should call next with ValidationsExepction if the role name is SuperAdmin', async () => {
       mockRoleModel.findByPk = jest
         .fn()
@@ -288,15 +301,35 @@ describe('User Controller', () => {
   });
 
   describe('Get One User', () => {
+    beforeEach(() => {
+      req.user = { role: 'SuperAdmin' };
+    });
+
     it('should have a getUser function', () => {
       expect(typeof sut.getUser).toBe('function');
     });
 
-    it('should call User.findByPk with the req.params.id value and the include object with the role', async () => {
+    it('should call User.findByPk with the req.params.id value and the include object with the role if req.user is the same id', async () => {
+      req.user = { id: 1 };
       await sut.getUser(req, res, next);
       expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {
         include: 'role',
       });
+    });
+
+    it('should call User.findByPk with the req.params.id value and the include object with the role if req.user does not have Normal Role', async () => {
+      req.user = { role: 'Admin' };
+      await sut.getUser(req, res, next);
+      expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {
+        include: 'role',
+      });
+    });
+
+    it('should called next if the req.user has role Normal but different id that req.params', async () => {
+      req.params.id = 100;
+      req.user = { role: 'Normal', id: 101 };
+      await sut.getUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new ForbiddenException());
     });
 
     it('should return a 200 status in the response', async () => {
@@ -349,9 +382,11 @@ describe('User Controller', () => {
       expect(typeof sut.deleteUser).toBe('function');
     });
 
-    it('should call User.findByPk with req.params.id and then call the destroy method', async () => {
+    it('should call User.findByPk with req.params.id and include object and then call the destroy method', async () => {
       await sut.deleteUser(req, res, next);
-      expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {});
+      expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {
+        include: 'role',
+      });
       expect(destroy).toHaveBeenCalled();
     });
 
@@ -372,6 +407,15 @@ describe('User Controller', () => {
       await sut.deleteUser(req, res, next);
       expect(next).toHaveBeenCalledWith(new APIException());
     });
+
+    it('should call next with UnauthorizedException if the user is SuperAdmin', async () => {
+      mockUserModel.findByPk = jest.fn().mockResolvedValueOnce({
+        ...resolvedUser,
+        role: { id: 1, name: 'SuperAdmin' },
+      });
+      await sut.deleteUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new ForbiddenException());
+    });
   });
 
   describe('Update User', () => {
@@ -379,20 +423,18 @@ describe('User Controller', () => {
 
     beforeEach(() => {
       save = jest.fn();
-      mockUserModel.findByPk = jest
-        .fn()
-        .mockResolvedValueOnce({
-          ...resolvedUser,
-          save,
-          role: { id: 1, name: 'TestRole' },
-        });
+      mockUserModel.findByPk = jest.fn().mockResolvedValueOnce({
+        ...resolvedUser,
+        save,
+        role: { id: 1, name: 'TestRole' },
+      });
     });
 
     it('should have a updateUser function', () => {
       expect(typeof sut.updateUser).toBe('function');
     });
 
-    it('should calle User.findByPk with req.params.id and include object as second argument', async () => {
+    it('should call User.findByPk with req.params.id and include object as second argument', async () => {
       await sut.updateUser(req, res, next);
       expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {
         include: 'role',
@@ -404,7 +446,7 @@ describe('User Controller', () => {
       expect(save).toHaveBeenCalledTimes(1);
     });
 
-    it('should return 200 in the respose object', async () => {
+    it('should return 200 in the response object', async () => {
       await sut.updateUser(req, res, next);
       expect(res.statusCode).toBe(200);
       expect(res._isEndCalled()).toBeTruthy();
@@ -470,7 +512,8 @@ describe('User Controller', () => {
     });
 
     it('should call next with BadRequestException if id is invalid', async () => {
-      req.params.id = 0;
+      req.params.id = '0';
+      mockUserModel.findByPk = jest.fn().mockResolvedValueOnce(null);
       await sut.updateUser(req, res, next);
       expect(next).toHaveBeenCalledWith(new BadRequestException());
     });
@@ -478,6 +521,40 @@ describe('User Controller', () => {
     it('should call next with APIException if something strange happen', async () => {
       mockUserModel.findByPk = jest.fn().mockRejectedValueOnce(new Error());
       await sut.updateUser(req, res, next);
+      expect(next).toHaveBeenCalledWith(new APIException());
+    });
+  });
+
+  describe('LogOut User', () => {
+    beforeEach(() => {
+      req.headers.authorization = `Bearer 3434`;
+    });
+
+    it('should have a logOut function', () => {
+      expect(typeof sut.logOut).toBe('function');
+    });
+
+    it('should call Token.findOne using the req.headers token', async () => {
+      await sut.logOut(req, res, next);
+      expect(mockTokenModel.findOne).toHaveBeenCalledWith({
+        where: { token: '3434' },
+      });
+    });
+
+    it('should call destroy if the token is returned by findOne', async () => {
+      await sut.logOut(req, res, next);
+      expect(mockTokenModel.destroy).toHaveBeenCalledWith();
+    });
+
+    it('should return 200 - OK if the token is deleted', async () => {
+      await sut.logOut(req, res, next);
+      expect(res.statusCode).toBe(200);
+      expect(res._isEndCalled()).toBeTruthy();
+    });
+
+    it('should call next with APIException if an error happen', async () => {
+      mockTokenModel.findOne.mockRejectedValueOnce(new Error());
+      await sut.logOut(req, res, next);
       expect(next).toHaveBeenCalledWith(new APIException());
     });
   });

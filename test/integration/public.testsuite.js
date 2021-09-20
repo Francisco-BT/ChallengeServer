@@ -1,10 +1,7 @@
-const request = require('supertest');
-const app = require('../../src/app');
-
-const publicTestsSuite = () => {
+const publicTestsSuite = (agent) => {
   describe('Public routes', () => {
     describe('GET - /', () => {
-      const getRoot = async () => request(app).get('/');
+      const getRoot = async () => await agent.get('/');
       it('should have an entry endpoint / to give the welcome to the API', async () => {
         const response = await getRoot();
         expect(response.status).toBe(200);

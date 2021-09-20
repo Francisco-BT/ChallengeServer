@@ -1,14 +1,17 @@
-const { POSTGRES_CONNECTION_STRING } = require('../config');
+const { POSTGRES_CONNECTION_STRING, NODE_ENV } = require('../config');
 
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(POSTGRES_CONNECTION_STRING, {
   logging: false,
   dialect: 'postgres',
   dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false,
-    },
+    ssl:
+      NODE_ENV === 'test'
+        ? false
+        : {
+            require: true,
+            rejectUnauthorized: false,
+          },
   },
 });
 

@@ -26,7 +26,7 @@ if (process.env.NODE_ENV !== 'test') {
         name: 'Super Admin',
         email: 'admin@admin.com',
         password: await encrypt('123456'),
-        roleId: roles[0].id
+        roleId: roles[0].id,
       });
       // console.log('USERS: ', await User.findAll());
       // console.log('ROLES: ', await Role.findAll());
@@ -35,5 +35,4 @@ if (process.env.NODE_ENV !== 'test') {
     }
   })();
 }
-
 app.listen(PORT, () => console.log(`Server running on port: ${PORT}`));
