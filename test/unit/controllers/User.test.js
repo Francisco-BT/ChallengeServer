@@ -72,7 +72,7 @@ describe('User Controller', () => {
     req = createRequest();
     sut = new UserController(mockUserModel, mockRoleModel, mockTokenModel);
     next = jest.fn();
-    req.params.id = 1;
+    req.params.id = '1';
   });
 
   describe('Create User', () => {
@@ -434,7 +434,7 @@ describe('User Controller', () => {
       expect(typeof sut.updateUser).toBe('function');
     });
 
-    it('should calle User.findByPk with req.params.id and include object as second argument', async () => {
+    it('should call User.findByPk with req.params.id and include object as second argument', async () => {
       await sut.updateUser(req, res, next);
       expect(mockUserModel.findByPk).toHaveBeenCalledWith(1, {
         include: 'role',
@@ -446,7 +446,7 @@ describe('User Controller', () => {
       expect(save).toHaveBeenCalledTimes(1);
     });
 
-    it('should return 200 in the respose object', async () => {
+    it('should return 200 in the response object', async () => {
       await sut.updateUser(req, res, next);
       expect(res.statusCode).toBe(200);
       expect(res._isEndCalled()).toBeTruthy();
@@ -512,7 +512,8 @@ describe('User Controller', () => {
     });
 
     it('should call next with BadRequestException if id is invalid', async () => {
-      req.params.id = 0;
+      req.params.id = '0';
+      mockUserModel.findByPk = jest.fn().mockResolvedValueOnce(null);
       await sut.updateUser(req, res, next);
       expect(next).toHaveBeenCalledWith(new BadRequestException());
     });

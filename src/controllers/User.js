@@ -70,7 +70,7 @@ class UserController extends BaseController {
   async getUser(req, res, next) {
     try {
       const { id } = req.params;
-      if (id !== req.user.id && req.user.role === 'Normal') {
+      if (parseInt(id, 10) !== req.user.id && req.user.role === 'Normal') {
         return next(new ForbiddenException());
       }
 
@@ -120,7 +120,9 @@ class UserController extends BaseController {
           user.technicalKnowledge
         );
         await user.save();
-        res.status(200).json({ ...UserController.parseUser(user, user.role) });
+        return res
+          .status(200)
+          .json({ ...UserController.parseUser(user, user.role) });
       }
       next(new BadRequestException());
     } catch {

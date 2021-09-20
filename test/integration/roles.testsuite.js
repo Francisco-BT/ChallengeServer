@@ -57,6 +57,23 @@ const roleTestsSuite = (agent) => {
         expect(properties).toHaveLength(3);
         expect(properties.sort()).toEqual(['description', 'id', 'name']);
       });
+
+      describe('Role Authorization', () => {
+        it.each`
+          role            | expectedStatus
+          ${'Normal'}     | ${403}
+          ${'Admin'}      | ${200}
+          ${'SuperAdmin'} | ${200}
+          ${'Unknown'}    | ${403}
+        `(
+          'should response $expectedStatus if the user has role $role',
+          async ({ role, expectedStatus }) => {
+            const normalRoleToken = await getAuthToken(agent, role);
+            const response = await requestRoles(normalRoleToken);
+            expect(response.status).toBe(expectedStatus);
+          }
+        );
+      });
     });
   });
 };
