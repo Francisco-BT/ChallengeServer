@@ -12,6 +12,7 @@ exports.newUserValidator = () => {
     customValidator.englishLevel(),
     customValidator.cvLink(),
     customValidator.role(),
+    customValidator.technicalKnowledge(),
     validate,
   ];
   return validations;
@@ -23,17 +24,15 @@ exports.updateUserValidator = () => {
     customValidator.name().optional(),
     customValidator.englishLevel(),
     customValidator.cvLink(),
+    customValidator.technicalKnowledge(),
     validate,
   ];
 };
 
 exports.newAccountValidator = () => {
   return [
-    CustomValidator.notEmptyWithMessage(body('name'), 'Name cannot be null'),
-    CustomValidator.notEmptyWithMessage(
-      body('clientName'),
-      'Client Name cannot be null'
-    ),
+    customValidator.accountName(),
+    customValidator.clientName(),
     customValidator.responsibleName(),
     validate,
   ];
@@ -41,14 +40,8 @@ exports.newAccountValidator = () => {
 
 exports.updateAccountValidator = () => {
   return [
-    CustomValidator.notEmptyWithMessage(
-      body('name'),
-      'Name cannot be null'
-    ).optional(),
-    CustomValidator.notEmptyWithMessage(
-      body('clientName'),
-      'Client Name cannot be null'
-    ).optional(),
+    customValidator.accountName().optional(),
+    customValidator.clientName().optional(),
     customValidator.responsibleName().optional(),
     validate,
   ];

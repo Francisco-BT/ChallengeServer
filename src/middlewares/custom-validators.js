@@ -17,7 +17,11 @@ class CustomValidator {
       'Name cannot be null'
     )
       .isAlpha('en-US', { ignore: / | ./g })
-      .withMessage('Name cannot contain numbers or special characters just .');
+      .withMessage('Name cannot contain numbers or special characters just .')
+      .bail()
+      .not()
+      .isBoolean()
+      .withMessage('Name must be a string');
   }
 
   englishLevel(validate = this.validateOn) {
@@ -68,6 +72,17 @@ class CustomValidator {
       .withMessage('Role is not valid');
   }
 
+  technicalKnowledge(validate = this.validateOn) {
+    return CustomValidator.notEmptyWithMessage(
+      validate('technicalKnowledge'),
+      'Technical Knowledge cannot be null'
+    )
+      .not()
+      .isBoolean()
+      .withMessage('Technical Knowledge must be a string')
+      .optional();
+  }
+
   responsibleName(validate = this.validateOn) {
     return CustomValidator.notEmptyWithMessage(
       validate('responsibleName'),
@@ -76,7 +91,31 @@ class CustomValidator {
       .isAlpha('en-US', { ignore: / | ./g })
       .withMessage(
         'Responsible Name cannot contain numbers or special characters just .'
-      );
+      )
+      .bail()
+      .not()
+      .isBoolean()
+      .withMessage('Responsible Name must be a string');
+  }
+
+  accountName(validate = this.validateOn) {
+    return CustomValidator.notEmptyWithMessage(
+      validate('name'),
+      'Name cannot be null'
+    )
+      .not()
+      .isBoolean()
+      .withMessage('Name must be a string');
+  }
+
+  clientName(validate = this.validateOn) {
+    return CustomValidator.notEmptyWithMessage(
+      validate('clientName'),
+      'Client Name cannot be null'
+    )
+      .not()
+      .isBoolean()
+      .withMessage('Client Name must be a string');
   }
 
   emptyBody() {

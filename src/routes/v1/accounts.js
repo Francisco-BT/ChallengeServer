@@ -4,6 +4,7 @@ const {
   tokenAuthorization,
   roleAuthorization,
   newAccountValidator,
+  updateAccountValidator,
 } = require('../../middlewares');
 
 const controller = new AccountController(Account);
@@ -12,6 +13,9 @@ module.exports = (router) => {
   router.use(roleAuthorization(['Admin', 'SuperAdmin']));
   router.post('/', newAccountValidator(), (req, res, next) =>
     controller.create(req, res, next)
+  );
+  router.put('/:id', updateAccountValidator(), (req, res, next) =>
+    controller.updateAccount(req, res, next)
   );
 
   return router;

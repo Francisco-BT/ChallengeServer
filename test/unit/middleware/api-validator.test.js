@@ -32,6 +32,7 @@ const invokeMiddlewares = async (middlewares) => {
 describe('User Validators Middleware', () => {
   const commonValidationCases = [
     { field: 'name', value: null, expectedMessage: 'Name cannot be null' },
+    { field: 'name', value: false, expectedMessage: 'Name must be a string' },
     {
       field: 'name',
       value: '1231231',
@@ -52,8 +53,18 @@ describe('User Validators Middleware', () => {
     },
     {
       field: 'englishLevel',
+      value: false,
+      expectedMessage: 'English Level must be either (A1, A2, B1, B2, C1, C2)',
+    },
+    {
+      field: 'englishLevel',
       value: 'Advanced',
       expectedMessage: 'English Level must be either (A1, A2, B1, B2, C1, C2)',
+    },
+    {
+      field: 'cvLink',
+      value: true,
+      expectedMessage: 'CV Link must have an URL format',
     },
     {
       field: 'cvLink',
@@ -81,6 +92,11 @@ describe('User Validators Middleware', () => {
       { field: 'email', value: null, expectedMessage: 'Email cannot be null' },
       {
         field: 'email',
+        value: false,
+        expectedMessage: 'Email format is wrong',
+      },
+      {
+        field: 'email',
         value: 'noemail',
         expectedMessage: 'Email format is wrong',
       },
@@ -103,6 +119,11 @@ describe('User Validators Middleware', () => {
         field: 'password',
         value: null,
         expectedMessage: 'Password cannot be null',
+      },
+      {
+        field: 'password',
+        value: false,
+        expectedMessage: 'Password must have at least 8 characters',
       },
       {
         field: 'password',
@@ -146,6 +167,11 @@ describe('User Validators Middleware', () => {
       },
       {
         field: 'roleId',
+        value: false,
+        expectedMessage: 'Role is not valid',
+      },
+      {
+        field: 'roleId',
         value: 'asdasda',
         expectedMessage: 'Role is not valid',
       },
@@ -158,6 +184,16 @@ describe('User Validators Middleware', () => {
         field: 'roleId',
         value: 0,
         expectedMessage: 'Role is not valid',
+      },
+      {
+        field: 'technicalKnowledge',
+        value: null,
+        expectedMessage: 'Technical Knowledge cannot be null',
+      },
+      {
+        field: 'technicalKnowledge',
+        value: false,
+        expectedMessage: 'Technical Knowledge must be a string',
       },
       ...commonValidationCases,
     ])(
@@ -218,11 +254,17 @@ describe('User Validators Middleware', () => {
 describe('Account Validators Middleware', () => {
   const accountValidations = [
     { field: 'name', value: null, expectedMessage: 'Name cannot be null' },
+    { field: 'name', value: false, expectedMessage: 'Name must be a string' },
     { field: 'name', value: '', expectedMessage: 'Name cannot be null' },
     {
       field: 'clientName',
       value: null,
       expectedMessage: 'Client Name cannot be null',
+    },
+    {
+      field: 'clientName',
+      value: false,
+      expectedMessage: 'Client Name must be a string',
     },
     {
       field: 'clientName',
@@ -255,6 +297,11 @@ describe('Account Validators Middleware', () => {
       value: 'R$sP=ns$bl#',
       expectedMessage:
         'Responsible Name cannot contain numbers or special characters just .',
+    },
+    {
+      field: 'responsibleName',
+      value: false,
+      expectedMessage: 'Responsible Name must be a string',
     },
   ];
 

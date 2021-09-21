@@ -1,12 +1,15 @@
 const { Account } = require('../../src/models');
-const { getAuthToken } = require('./utils');
+const { getAuthToken, createAccounts } = require('./utils');
 
 module.exports = (agent) => {
-  describe('POST - /api/v1/accounts', () => {
-    beforeEach(async () => {
-      await Account.sync({ force: true });
-    });
+  let token;
 
+  beforeEach(async () => {
+    await Account.sync({ force: true });
+    token = await getAuthToken(agent, 'SuperAdmin');
+  });
+
+  describe('POST - /api/v1/accounts', () => {
     const validPayload = {
       name: 'AccountTest',
       clientName: 'ClientTest',
@@ -38,7 +41,6 @@ module.exports = (agent) => {
     });
 
     it('should response id, name, clientName and responsible in the body', async () => {
-      const token = await getAuthToken(agent, 'SuperAdmin');
       const response = await postAccount(validPayload, token);
 
       expect(response.body).toHaveProperty('id');
@@ -51,7 +53,6 @@ module.exports = (agent) => {
     });
 
     it('should response 400 with errors if the fields values are wrong', async () => {
-      const token = await getAuthToken(agent, 'SuperAdmin');
       const response = await postAccount(
         { responsibleName: '13123123' },
         token
@@ -65,6 +66,68 @@ module.exports = (agent) => {
             'Responsible Name cannot contain number or special characters',
         })
       );
+    });
+
+    it('should response 409 if the account already exists', async () => {
+      await postAccount(validPayload, token);
+      const response = await postAccount(validPayload, token);
+      expect(response.status).toBe(409);
+      expect(Object.keys(response.body)).toEqual(['message', 'timestamp']);
+    });
+  });
+
+  describe('PUT - /api/v1/accounts/:id', () => {
+    const putAccount = async (id, payload, token) => {
+      return await agent
+        .put(`/api/v1/accounts/${id}`)
+        .send(payload)
+        .auth(token, { type: 'bearer' });
+    };
+
+    it('should response 200 if the account is updated', async () => {
+      const account = (await createAccounts(1))[0];
+      const response = await putAccount(
+        account.id,
+        { name: 'AccountNameUpdated' },
+        token
+      );
+      expect(response.status).toBe(200);
+      expect(response.body.name).toBe('AccountNameUpdated');
+    });
+
+    it('should response 401 when token is invalid', async () => {
+      const response = await putAccount(1, {}, '1231');
+      expect(response.status).toBe(401);
+    });
+
+    it('should response 403 if the token is of Normal role', async () => {
+      const normalRoleToken = await getAuthToken(agent, 'Normal');
+      const response = await putAccount(1, {}, normalRoleToken);
+      expect(response.status).toBe(403);
+    });
+
+    it('should response 400 with errors if the values to update are invalid', async () => {
+      const account = (await createAccounts(1))[0];
+      const response = await putAccount(
+        account.id,
+        { name: true, clientName: null, responsibleName: 1213213 },
+        token
+      );
+      expect(response.status).toBe(400);
+      expect(Object.keys(response.body.errors)).toEqual([
+        'name',
+        'clientName',
+        'responsibleName',
+      ]);
+    });
+
+    it('should response 400 if the account not exist', async () => {
+      const response = await putAccount(
+        100,
+        { name: 'Invalid account' },
+        token
+      );
+      expect(response.status).toBe(400);
     });
   });
 };

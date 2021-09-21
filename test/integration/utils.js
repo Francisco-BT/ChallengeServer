@@ -1,4 +1,4 @@
-const { User, Role } = require('../../src/models');
+const { User, Role, Account } = require('../../src/models');
 const { encrypt, generateToken } = require('../../src/utils');
 
 exports.createUsers = async (quantity) => {
@@ -39,4 +39,16 @@ exports.getAuthToken = async (agent, roleName = 'SuperAdmin') => {
 
 exports.getFakeToken = async (id) => {
   return await generateToken({ id });
+};
+
+exports.createAccounts = async (quantity) => {
+  const newAccounts = [];
+  for (let i = 1; i <= quantity; i++) {
+    newAccounts.push({
+      name: `Account ${i}`,
+      clientName: `Client ${i}`,
+      responsibleName: `Responsible ${i}`,
+    });
+  }
+  return await Account.bulkCreate(newAccounts);
 };
