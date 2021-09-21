@@ -22,3 +22,5 @@ exports.getTokenFromHeaders = (req) => {
 };
 
 exports.isEmptyObject = (object) => Object.keys(object).length === 0;
+
+exports.pickValue = (option1, option2) => (option1 ? option1 : option2);

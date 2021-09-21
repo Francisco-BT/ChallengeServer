@@ -24,5 +24,6 @@ Account.init(
     modelName: 'accounts',
   }
 );
+Account.findAndCountAll;
 
 module.exports = Account;

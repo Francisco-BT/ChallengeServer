@@ -7,7 +7,7 @@ const {
   BadRequestException,
   ForbiddenException,
 } = require('../utils/errors');
-const { getTokenFromHeaders } = require('../utils');
+const { getTokenFromHeaders, pickValue } = require('../utils');
 
 class UserController extends BaseController {
   constructor(model, RoleModel, TokenModel) {
@@ -112,10 +112,10 @@ class UserController extends BaseController {
 
       const user = await this.findUserById(id, { include: 'role' });
       if (user) {
-        user.name = this.pickValue(name, user.name);
-        user.englishLevel = this.pickValue(englishLevel, user.englishLevel);
-        user.cvLink = this.pickValue(cvLink, user.cvLink);
-        user.technicalKnowledge = this.pickValue(
+        user.name = pickValue(name, user.name);
+        user.englishLevel = pickValue(englishLevel, user.englishLevel);
+        user.cvLink = pickValue(cvLink, user.cvLink);
+        user.technicalKnowledge = pickValue(
           technicalKnowledge,
           user.technicalKnowledge
         );
@@ -141,10 +141,6 @@ class UserController extends BaseController {
     } catch {
       next(new APIException());
     }
-  }
-
-  pickValue(option1, option2) {
-    return option1 ? option1 : option2;
   }
 
   static parseUser(user, role) {

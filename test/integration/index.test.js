@@ -17,9 +17,9 @@ describe('Integration Test', () => {
 
   afterAll(async () => await sequelize.close());
 
-  publicTestsSuite(agent);
-  roleTestsSuite(agent);
-  userTestsSuite(agent);
-  logOutTestsSuite(agent);
+  // publicTestsSuite(agent);
+  // roleTestsSuite(agent);
+  // userTestsSuite(agent);
+  // logOutTestsSuite(agent);
   accountTestSuite(agent);
 });
