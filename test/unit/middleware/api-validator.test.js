@@ -2,12 +2,14 @@ const { createRequest, createResponse } = require('node-mocks-http');
 const {
   newUserValidator,
   updateUserValidator,
+  newAccountValidator,
 } = require('../../../src/middlewares');
 const { ValidationsException } = require('../../../src/utils/errors');
 
 let next = jest.fn(),
   req = createRequest(),
   res = createResponse();
+
 beforeEach(() => {
   next = jest.fn();
   req = createRequest();
@@ -26,46 +28,48 @@ const invokeMiddlewares = async (middlewares) => {
   await validateMiddleware(req, res, next);
 };
 
-const commonValidationCases = [
-  { field: 'name', value: null, expectedMessage: 'Name cannot be null' },
-  {
-    field: 'name',
-    value: '1231231',
-    expectedMessage: 'Name cannot contain numbers or special characters just .',
-  },
-  {
-    field: 'name',
-    value: 'User12 Rodriguez',
-    expectedMessage: 'Name cannot contain numbers or special characters just .',
-  },
-  {
-    field: 'name',
-    value: 'User$ With special ch$ract#rs',
-    expectedMessage: 'Name cannot contain numbers or special characters just .',
-  },
-  {
-    field: 'englishLevel',
-    value: 'Advanced',
-    expectedMessage: 'English Level must be either (A1, A2, B1, B2, C1, C2)',
-  },
-  {
-    field: 'cvLink',
-    value: 'testlink',
-    expectedMessage: 'CV Link must have an URL format',
-  },
-  {
-    field: 'cvLink',
-    value: 'https://test',
-    expectedMessage: 'CV Link must have an URL format',
-  },
-  {
-    field: 'cvLink',
-    value: 'http://test',
-    expectedMessage: 'CV Link must have an URL format',
-  },
-];
-
 describe('User Validators Middleware', () => {
+  const commonValidationCases = [
+    { field: 'name', value: null, expectedMessage: 'Name cannot be null' },
+    {
+      field: 'name',
+      value: '1231231',
+      expectedMessage:
+        'Name cannot contain numbers or special characters just .',
+    },
+    {
+      field: 'name',
+      value: 'User12 Rodriguez',
+      expectedMessage:
+        'Name cannot contain numbers or special characters just .',
+    },
+    {
+      field: 'name',
+      value: 'User$ With special ch$ract#rs',
+      expectedMessage:
+        'Name cannot contain numbers or special characters just .',
+    },
+    {
+      field: 'englishLevel',
+      value: 'Advanced',
+      expectedMessage: 'English Level must be either (A1, A2, B1, B2, C1, C2)',
+    },
+    {
+      field: 'cvLink',
+      value: 'testlink',
+      expectedMessage: 'CV Link must have an URL format',
+    },
+    {
+      field: 'cvLink',
+      value: 'https://test',
+      expectedMessage: 'CV Link must have an URL format',
+    },
+    {
+      field: 'cvLink',
+      value: 'http://test',
+      expectedMessage: 'CV Link must have an URL format',
+    },
+  ];
   describe('New User Middleware Validator', () => {
     it('should have a newUserValidator function', () => {
       expect(typeof newUserValidator).toBe('function');
@@ -206,13 +210,64 @@ describe('User Validators Middleware', () => {
         expect(errors[field]).toBe(expectedMessage);
       }
     );
+  });
+});
 
-    it('should call next with ValidationsException when name is null with message Name cannot be null', async () => {
-      req.body.name = null;
-      await invokeMiddlewares(updateUserValidator());
-      const errors = next.mock.calls[0][0].errors;
-      expect(next).toHaveBeenCalledWith(new ValidationsException());
-      expect(errors.name).toBe('Name cannot be null');
+describe('Account Validators Middleware', () => {
+  describe('New Account Middleware Validator', () => {
+    it('should have a newAccountValidator function', () => {
+      expect(typeof newAccountValidator).toBe('function');
     });
+
+    it.each([
+      { field: 'name', value: null, expectedMessage: 'Name cannot be null' },
+      { field: 'name', value: '', expectedMessage: 'Name cannot be null' },
+      {
+        field: 'clientName',
+        value: null,
+        expectedMessage: 'Client Name cannot be null',
+      },
+      {
+        field: 'clientName',
+        value: '',
+        expectedMessage: 'Client Name cannot be null',
+      },
+      {
+        field: 'responsibleName',
+        value: undefined,
+        expectedMessage: 'Responsible Name cannot be null',
+      },
+      {
+        field: 'responsibleName',
+        value: null,
+        expectedMessage: 'Responsible Name cannot be null',
+      },
+      {
+        field: 'responsibleName',
+        value: '',
+        expectedMessage: 'Responsible Name cannot be null',
+      },
+      {
+        field: 'responsibleName',
+        value: '452 aasdrt345',
+        expectedMessage:
+          'Responsible Name cannot contain numbers or special characters just .',
+      },
+      {
+        field: 'responsibleName',
+        value: 'R$sP=ns$bl#',
+        expectedMessage:
+          'Responsible Name cannot contain numbers or special characters just .',
+      },
+    ])(
+      'should return errors with $expectedMessage when $field is $value',
+      async ({ field, value, expectedMessage }) => {
+        req.body[field] = value;
+        await invokeMiddlewares(newAccountValidator());
+        const errors = next.mock.calls[0][0].errors;
+        expect(next).toHaveBeenCalledWith(new ValidationsException());
+        expect(errors[field]).toBe(expectedMessage);
+      }
+    );
   });
 });

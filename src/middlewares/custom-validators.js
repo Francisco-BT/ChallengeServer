@@ -58,14 +58,25 @@ class CustomValidator {
       .withMessage('Email format is wrong');
   }
 
-  role(validateOn = this.validateOn) {
+  role(validate = this.validateOn) {
     return CustomValidator.notEmptyWithMessage(
-      validateOn('roleId'),
+      validate('roleId'),
       'Role cannot be null'
     )
       .isNumeric()
       .isInt({ gt: 0 })
       .withMessage('Role is not valid');
+  }
+
+  responsibleName(validate = this.validateOn) {
+    return CustomValidator.notEmptyWithMessage(
+      validate('responsibleName'),
+      'Responsible Name cannot be null'
+    )
+      .isAlpha('en-US', { ignore: / | ./g })
+      .withMessage(
+        'Responsible Name cannot contain numbers or special characters just .'
+      );
   }
 
   emptyBody() {
