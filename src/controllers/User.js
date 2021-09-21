@@ -6,6 +6,7 @@ const {
   ValidationsException,
   BadRequestException,
   ForbiddenException,
+  ConflictException,
 } = require('../utils/errors');
 const { getTokenFromHeaders, pickValue } = require('../utils');
 
@@ -17,11 +18,19 @@ class UserController extends BaseController {
   }
 
   async create(req, res, next) {
-    const { roleId, password } = req.body;
+    const { roleId, password, email } = req.body;
     try {
       const role = await this.RoleModel.findByPk(roleId);
       if (!role || role.name === 'SuperAdmin') {
         return next(new ValidationsException({ roleId: 'Role is not valid' }));
+      }
+
+      const userExists = await this._sequelizeModel.findOne({
+        where: { email },
+      });
+
+      if (userExists) {
+        return next(new ConflictException());
       }
 
       const encryptedPassword = await encrypt(password);
