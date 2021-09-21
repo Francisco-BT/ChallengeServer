@@ -3,6 +3,7 @@ const {
   newUserValidator,
   updateUserValidator,
   newAccountValidator,
+  updateAccountValidator,
 } = require('../../../src/middlewares');
 const { ValidationsException } = require('../../../src/utils/errors');
 
@@ -70,6 +71,7 @@ describe('User Validators Middleware', () => {
       expectedMessage: 'CV Link must have an URL format',
     },
   ];
+
   describe('New User Middleware Validator', () => {
     it('should have a newUserValidator function', () => {
       expect(typeof newUserValidator).toBe('function');
@@ -214,52 +216,71 @@ describe('User Validators Middleware', () => {
 });
 
 describe('Account Validators Middleware', () => {
+  const accountValidations = [
+    { field: 'name', value: null, expectedMessage: 'Name cannot be null' },
+    { field: 'name', value: '', expectedMessage: 'Name cannot be null' },
+    {
+      field: 'clientName',
+      value: null,
+      expectedMessage: 'Client Name cannot be null',
+    },
+    {
+      field: 'clientName',
+      value: '',
+      expectedMessage: 'Client Name cannot be null',
+    },
+    {
+      field: 'responsibleName',
+      value: undefined,
+      expectedMessage: 'Responsible Name cannot be null',
+    },
+    {
+      field: 'responsibleName',
+      value: null,
+      expectedMessage: 'Responsible Name cannot be null',
+    },
+    {
+      field: 'responsibleName',
+      value: '',
+      expectedMessage: 'Responsible Name cannot be null',
+    },
+    {
+      field: 'responsibleName',
+      value: '452 aasdrt345',
+      expectedMessage:
+        'Responsible Name cannot contain numbers or special characters just .',
+    },
+    {
+      field: 'responsibleName',
+      value: 'R$sP=ns$bl#',
+      expectedMessage:
+        'Responsible Name cannot contain numbers or special characters just .',
+    },
+  ];
+
   describe('New Account Middleware Validator', () => {
     it('should have a newAccountValidator function', () => {
       expect(typeof newAccountValidator).toBe('function');
     });
 
-    it.each([
-      { field: 'name', value: null, expectedMessage: 'Name cannot be null' },
-      { field: 'name', value: '', expectedMessage: 'Name cannot be null' },
-      {
-        field: 'clientName',
-        value: null,
-        expectedMessage: 'Client Name cannot be null',
-      },
-      {
-        field: 'clientName',
-        value: '',
-        expectedMessage: 'Client Name cannot be null',
-      },
-      {
-        field: 'responsibleName',
-        value: undefined,
-        expectedMessage: 'Responsible Name cannot be null',
-      },
-      {
-        field: 'responsibleName',
-        value: null,
-        expectedMessage: 'Responsible Name cannot be null',
-      },
-      {
-        field: 'responsibleName',
-        value: '',
-        expectedMessage: 'Responsible Name cannot be null',
-      },
-      {
-        field: 'responsibleName',
-        value: '452 aasdrt345',
-        expectedMessage:
-          'Responsible Name cannot contain numbers or special characters just .',
-      },
-      {
-        field: 'responsibleName',
-        value: 'R$sP=ns$bl#',
-        expectedMessage:
-          'Responsible Name cannot contain numbers or special characters just .',
-      },
-    ])(
+    it.each([...accountValidations])(
+      'should return errors with $expectedMessage when $field is $value',
+      async ({ field, value, expectedMessage }) => {
+        req.body[field] = value;
+        await invokeMiddlewares(newAccountValidator());
+        const errors = next.mock.calls[0][0].errors;
+        expect(next).toHaveBeenCalledWith(new ValidationsException());
+        expect(errors[field]).toBe(expectedMessage);
+      }
+    );
+  });
+
+  describe('Update Account Middleware Validator', () => {
+    it('should have a updateAccountValidator function', () => {
+      expect(typeof updateAccountValidator).toBe('function');
+    });
+
+    it.each([...accountValidations])(
       'should return errors with $expectedMessage when $field is $value',
       async ({ field, value, expectedMessage }) => {
         req.body[field] = value;

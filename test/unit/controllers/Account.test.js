@@ -3,6 +3,7 @@ const { AccountController } = require('../../../src/controllers');
 const {
   APIException,
   BadRequestException,
+  ConflictException,
 } = require('../../../src/utils/errors');
 
 describe('Account Controller', () => {
@@ -10,6 +11,7 @@ describe('Account Controller', () => {
     create: jest.fn(),
     findAndCountAll: jest.fn(),
     findByPk: jest.fn(),
+    findOne: jest.fn(),
   };
   let req, res, next, sut;
 
@@ -34,7 +36,7 @@ describe('Account Controller', () => {
       req.body = {
         name: 'TestAccount',
         clientName: 'TestClient',
-        responsible: 'TestResponsible',
+        responsibleName: 'TestResponsible',
       };
     });
 
@@ -48,7 +50,7 @@ describe('Account Controller', () => {
       expect(AccountMockModel.create).toHaveBeenCalledWith({
         name: 'TestAccount',
         clientName: 'TestClient',
-        responsible: 'TestResponsible',
+        responsibleName: 'TestResponsible',
       });
     });
 
@@ -64,10 +66,23 @@ describe('Account Controller', () => {
       });
     });
 
-    it('should call next with APIException if saved the account fail', async () => {
+    it('should call next with APIException if create the account fail', async () => {
       AccountMockModel.create.mockRejectedValueOnce(new Error());
       await sut.create(req, res, next);
       expect(next).toHaveBeenCalledWith(new APIException());
+    });
+
+    it('should call Account.findOne using the name to validate is already exist', async () => {
+      await sut.create(req, res, next);
+      expect(AccountMockModel.findOne).toHaveBeenCalledWith({
+        where: { name: 'TestAccount' },
+      });
+    });
+
+    it('should call next with ConflictException if Account.findOne returns an account', async () => {
+      AccountMockModel.findOne = jest.fn().mockResolvedValueOnce({});
+      await sut.create(req, res, next);
+      expect(next).toHaveBeenCalledWith(new ConflictException());
     });
   });
 

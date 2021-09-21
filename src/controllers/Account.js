@@ -1,5 +1,9 @@
 const BaseController = require('./BaseController');
-const { APIException, BadRequestException } = require('../utils/errors');
+const {
+  APIException,
+  BadRequestException,
+  ConflictException,
+} = require('../utils/errors');
 const {
   paginationBoundaries,
   buildPagination,
@@ -13,7 +17,20 @@ class AccountController extends BaseController {
 
   async create(req, res, next) {
     try {
-      const account = await this._sequelizeModel.create({ ...req.body });
+      const { name, clientName, responsibleName } = req.body;
+      const accountExist = await this._sequelizeModel.findOne({
+        where: { name },
+      });
+
+      if (accountExist) {
+        return next(new ConflictException());
+      }
+
+      const account = await this._sequelizeModel.create({
+        name,
+        clientName,
+        responsibleName,
+      });
       res.status(201).json(AccountController.parseAccount(account));
     } catch {
       next(new APIException());

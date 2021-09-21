@@ -38,3 +38,18 @@ exports.newAccountValidator = () => {
     validate,
   ];
 };
+
+exports.updateAccountValidator = () => {
+  return [
+    CustomValidator.notEmptyWithMessage(
+      body('name'),
+      'Name cannot be null'
+    ).optional(),
+    CustomValidator.notEmptyWithMessage(
+      body('clientName'),
+      'Client Name cannot be null'
+    ).optional(),
+    customValidator.responsibleName().optional(),
+    validate,
+  ];
+};
