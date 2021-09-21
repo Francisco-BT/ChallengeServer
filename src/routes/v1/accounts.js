@@ -17,6 +17,10 @@ module.exports = (router) => {
   router.put('/:id', updateAccountValidator(), (req, res, next) =>
     controller.updateAccount(req, res, next)
   );
-
+  router.delete('/:id', (req, res, next) =>
+    controller.deleteAccount(req, res, next)
+  );
+  router.get('/:id', (req, res, next) => controller.getAccount(req, res, next));
+  router.get('/', (req, res, next) => controller.getAll(req, res, next));
   return router;
 };
