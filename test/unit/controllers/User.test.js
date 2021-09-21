@@ -7,6 +7,7 @@ const {
   ValidationsException,
   BadRequestException,
   ForbiddenException,
+  ConflictException,
 } = require('../../../src/utils/errors');
 const { sequelize } = require('../../../src/services');
 
@@ -40,6 +41,7 @@ describe('User Controller', () => {
       }),
     };
     mockUserModel = {
+      findOne: jest.fn(),
       create: jest.fn().mockResolvedValueOnce({ ...resolvedUser }),
       findAll: jest.fn().mockResolvedValueOnce([
         {
@@ -172,6 +174,20 @@ describe('User Controller', () => {
           roleId: 'Role is not valid',
         })
       );
+    });
+
+    it('should call User.findOne with email to validate if already exists', async () => {
+      mockUserModel.findOne = jest.fn();
+      await sut.create(req, res, next);
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({
+        where: { email: 'test1@mail.com' },
+      });
+    });
+
+    it('should call next with ConflictException if findOne returns no null', async () => {
+      mockUserModel.findOne = jest.fn().mockResolvedValueOnce(1);
+      await sut.create(req, res, next);
+      expect(next).toHaveBeenCalledWith(new ConflictException());
     });
   });
 

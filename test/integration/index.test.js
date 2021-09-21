@@ -5,6 +5,7 @@ const userTestsSuite = require('./users.testsuite');
 const roleTestsSuite = require('./roles.testsuite');
 const publicTestsSuite = require('./public.testsuite');
 const logOutTestsSuite = require('./logout.testsuite');
+const accountTestSuite = require('./account.testsuite');
 
 // Run test in sequence to prevent race conditions cleaning up the DB
 describe('Integration Test', () => {
@@ -16,8 +17,9 @@ describe('Integration Test', () => {
 
   afterAll(async () => await sequelize.close());
 
-  publicTestsSuite(agent);
-  roleTestsSuite(agent);
-  userTestsSuite(agent);
-  logOutTestsSuite(agent);
+  // publicTestsSuite(agent);
+  // roleTestsSuite(agent);
+  // userTestsSuite(agent);
+  // logOutTestsSuite(agent);
+  accountTestSuite(agent);
 });

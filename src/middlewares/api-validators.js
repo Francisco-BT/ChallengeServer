@@ -12,6 +12,7 @@ exports.newUserValidator = () => {
     customValidator.englishLevel(),
     customValidator.cvLink(),
     customValidator.role(),
+    customValidator.technicalKnowledge(),
     validate,
   ];
   return validations;
@@ -23,6 +24,25 @@ exports.updateUserValidator = () => {
     customValidator.name().optional(),
     customValidator.englishLevel(),
     customValidator.cvLink(),
+    customValidator.technicalKnowledge(),
+    validate,
+  ];
+};
+
+exports.newAccountValidator = () => {
+  return [
+    customValidator.accountName(),
+    customValidator.clientName(),
+    customValidator.responsibleName(),
+    validate,
+  ];
+};
+
+exports.updateAccountValidator = () => {
+  return [
+    customValidator.accountName().optional(),
+    customValidator.clientName().optional(),
+    customValidator.responsibleName().optional(),
     validate,
   ];
 };

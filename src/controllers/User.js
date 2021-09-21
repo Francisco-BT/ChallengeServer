@@ -6,8 +6,9 @@ const {
   ValidationsException,
   BadRequestException,
   ForbiddenException,
+  ConflictException,
 } = require('../utils/errors');
-const { getTokenFromHeaders } = require('../utils');
+const { getTokenFromHeaders, pickValue } = require('../utils');
 
 class UserController extends BaseController {
   constructor(model, RoleModel, TokenModel) {
@@ -17,11 +18,19 @@ class UserController extends BaseController {
   }
 
   async create(req, res, next) {
-    const { roleId, password } = req.body;
+    const { roleId, password, email } = req.body;
     try {
       const role = await this.RoleModel.findByPk(roleId);
       if (!role || role.name === 'SuperAdmin') {
         return next(new ValidationsException({ roleId: 'Role is not valid' }));
+      }
+
+      const userExists = await this._sequelizeModel.findOne({
+        where: { email },
+      });
+
+      if (userExists) {
+        return next(new ConflictException());
       }
 
       const encryptedPassword = await encrypt(password);
@@ -112,10 +121,10 @@ class UserController extends BaseController {
 
       const user = await this.findUserById(id, { include: 'role' });
       if (user) {
-        user.name = this.pickValue(name, user.name);
-        user.englishLevel = this.pickValue(englishLevel, user.englishLevel);
-        user.cvLink = this.pickValue(cvLink, user.cvLink);
-        user.technicalKnowledge = this.pickValue(
+        user.name = pickValue(name, user.name);
+        user.englishLevel = pickValue(englishLevel, user.englishLevel);
+        user.cvLink = pickValue(cvLink, user.cvLink);
+        user.technicalKnowledge = pickValue(
           technicalKnowledge,
           user.technicalKnowledge
         );
@@ -141,10 +150,6 @@ class UserController extends BaseController {
     } catch {
       next(new APIException());
     }
-  }
-
-  pickValue(option1, option2) {
-    return option1 ? option1 : option2;
   }
 
   static parseUser(user, role) {
