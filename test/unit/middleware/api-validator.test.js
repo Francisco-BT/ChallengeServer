@@ -4,6 +4,7 @@ const {
   updateUserValidator,
   newAccountValidator,
   updateAccountValidator,
+  newTeamValidator,
 } = require('../../../src/middlewares');
 const { ValidationsException } = require('../../../src/utils/errors');
 
@@ -334,6 +335,70 @@ describe('Account Validators Middleware', () => {
         await invokeMiddlewares(newAccountValidator());
         const errors = next.mock.calls[0][0].errors;
         expect(next).toHaveBeenCalledWith(new ValidationsException());
+        expect(errors[field]).toBe(expectedMessage);
+      }
+    );
+  });
+});
+
+describe('Team Validators Middleware', () => {
+  describe('New Team Validators', () => {
+    it('should have a newTeamValidator middleware function', () => {
+      expect(typeof newTeamValidator).toBe('function');
+    });
+
+    it.each([
+      {
+        field: 'accountId',
+        value: null,
+        expectedMessage: 'Account ID cannot be null',
+      },
+      {
+        field: 'accountId',
+        value: undefined,
+        expectedMessage: 'Account ID cannot be null',
+      },
+      {
+        field: 'accountId',
+        value: 'Account id',
+        expectedMessage: 'Account ID must be an integer',
+      },
+      {
+        field: 'accountId',
+        value: false,
+        expectedMessage: 'Account ID must be an integer',
+      },
+      {
+        field: 'accountId',
+        value: [12, 23],
+        expectedMessage: 'Account ID must be an integer',
+      },
+      {
+        field: 'members',
+        value: null,
+        expectedMessage: 'Members cannot be empty',
+      },
+      {
+        field: 'members',
+        value: false,
+        expectedMessage: 'Members must be an array of integers',
+      },
+      {
+        field: 'members',
+        value: [],
+        expectedMessage: 'Members cannot be empty',
+      },
+      {
+        field: 'members',
+        value: 1,
+        expectedMessage: 'Members must be an array of integers',
+      },
+    ])(
+      'should return $expectedMessage when field $field is $value',
+      async ({ field, value, expectedMessage }) => {
+        req.body[field] = value;
+        await invokeMiddlewares(newTeamValidator());
+        const errors = next.mock.calls[0][0].errors;
         expect(errors[field]).toBe(expectedMessage);
       }
     );

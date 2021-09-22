@@ -1,11 +1,9 @@
-const { Account } = require('../../src/models');
 const { getAuthToken, createAccounts } = require('./utils');
 
 module.exports = (agent) => {
   let token;
 
   beforeEach(async () => {
-    await Account.sync({ force: true });
     token = await getAuthToken(agent, 'SuperAdmin');
   });
 

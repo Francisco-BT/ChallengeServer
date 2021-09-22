@@ -46,3 +46,7 @@ exports.updateAccountValidator = () => {
     validate,
   ];
 };
+
+exports.newTeamValidator = () => {
+  return [customValidator.accountId(), customValidator.teamMembers(), validate];
+};

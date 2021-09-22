@@ -118,6 +118,28 @@ class CustomValidator {
       .withMessage('Client Name must be a string');
   }
 
+  accountId(validate = this.validateOn) {
+    return CustomValidator.notEmptyWithMessage(
+      validate('accountId'),
+      'Account ID cannot be null'
+    )
+      .isInt()
+      .withMessage('Account ID must be an integer')
+      .bail()
+      .not()
+      .isArray()
+      .withMessage('Account ID must be an integer');
+  }
+
+  teamMembers(validate = this.validateOn) {
+    return CustomValidator.notEmptyWithMessage(
+      validate('members'),
+      'Members cannot be empty'
+    )
+      .isArray()
+      .withMessage('Members must be an array of integers');
+  }
+
   emptyBody() {
     return body()
       .custom((body) => !isEmptyObject(body))
