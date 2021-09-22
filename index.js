@@ -6,7 +6,7 @@ const { encrypt } = require('./src/utils');
 const { createUsers, createAccounts } = require('./test/integration/utils');
 
 // TODO: replace this logic by sequelize's seeds and migrations
-if (process.env.NODE_ENV === 'test') {
+if (process.env.NODE_ENV !== 'test') {
   (async () => {
     try {
       await sequelize.sync({ force: true });
