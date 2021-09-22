@@ -6,7 +6,7 @@ const sequelize = new Sequelize(POSTGRES_CONNECTION_STRING, {
   dialect: 'postgres',
   dialectOptions: {
     ssl:
-      NODE_ENV === 'test'
+      NODE_ENV !== 'production'
         ? false
         : {
             require: true,

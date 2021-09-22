@@ -1,8 +1,13 @@
-const { User, Role, Account } = require('../../src/models');
+const { User, Role, Account, Team } = require('../../src/models');
 const { encrypt, generateToken } = require('../../src/utils');
 
+const useRole = async (name) => {
+  const existingRole = await Role.findOne({ where: { name } });
+  return existingRole ? existingRole : await Role.create({ name });
+};
+
 exports.createUsers = async (quantity) => {
-  const role = await Role.create({ name: 'Normal' });
+  const role = await useRole('Normal');
   const users = [];
   for (let i = 0; i < quantity; i += 1) {
     const number = i + 1;
@@ -21,8 +26,7 @@ exports.createUsers = async (quantity) => {
 };
 
 exports.getAuthToken = async (agent, roleName = 'SuperAdmin') => {
-  const existRole = await Role.findOne({ where: { name: roleName } });
-  const role = existRole ? existRole : await Role.create({ name: roleName });
+  const role = await useRole(roleName);
   const user = await User.create({
     name: 'Super Admin',
     email: `admin${new Date().getTime()}@admin.com`,
@@ -45,10 +49,20 @@ exports.createAccounts = async (quantity) => {
   const newAccounts = [];
   for (let i = 1; i <= quantity; i++) {
     newAccounts.push({
-      name: `Account ${i}`,
+      name: `Account ${i + new Date().getTime()}`,
       clientName: `Client ${i}`,
       responsibleName: `Responsible ${i}`,
     });
   }
   return await Account.bulkCreate(newAccounts);
+};
+
+exports.createTeam = async () => {
+  const account = (await exports.createAccounts(1))[0];
+  const user = (await exports.createUsers(1))[0];
+  const team = await Team.create({
+    userId: user.id,
+    accountId: account.id,
+  });
+  return team;
 };

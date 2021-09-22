@@ -1,4 +1,4 @@
-const { Model, DataTypes } = require('sequelize');
+const { Model } = require('sequelize');
 const { sequelize } = require('../services');
 const Account = require('./Account');
 const User = require('./User');
@@ -6,22 +6,9 @@ const User = require('./User');
 class Team extends Model {}
 
 Team.init(
-  {
-    isDeleted: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    startDate: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    endDate: {
-      type: DataTypes.DATE,
-    },
-  },
+  {},
   {
     sequelize,
-    timestamps: false,
     modelName: 'teams',
   }
 );

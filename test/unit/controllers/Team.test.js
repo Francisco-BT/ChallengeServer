@@ -10,6 +10,7 @@ describe('TeamController', () => {
 
   const TeamMockModel = {
     bulkCreate: jest.fn(),
+    findOne: jest.fn(),
   };
 
   beforeEach(() => {
@@ -61,6 +62,51 @@ describe('TeamController', () => {
     it('should call next with APIException if bulkCreate fails for other reason', async () => {
       TeamMockModel.bulkCreate = jest.fn().mockRejectedValueOnce(new Error());
       await sut.createTeam(req, res, next);
+      expect(next).toHaveBeenCalledWith(new APIException());
+    });
+  });
+
+  describe('Delete Team Member', () => {
+    let destroy;
+    beforeEach(() => {
+      destroy = jest.fn();
+      TeamMockModel.findOne = jest.fn().mockResolvedValueOnce({
+        destroy,
+      });
+      req.params = { accountId: '1', userId: '1' };
+    });
+
+    it('should have a deleteTeamMember function', () => {
+      expect(typeof sut.deleteTeamMember).toBe('function');
+    });
+
+    it('should call Team.findOne using accountId and userId', async () => {
+      await sut.deleteTeamMember(req, res, next);
+      expect(TeamMockModel.findOne).toHaveBeenCalledWith({
+        where: { accountId: 1, userId: 1 },
+      });
+    });
+
+    it('should call destroy to delete the entry', async () => {
+      await sut.deleteTeamMember(req, res, next);
+      expect(destroy).toHaveBeenCalled();
+    });
+
+    it('should response 204 if team member is soft deleted', async () => {
+      await sut.deleteTeamMember(req, res, next);
+      expect(res.statusCode).toBe(204);
+      expect(res._isEndCalled()).toBeTruthy();
+    });
+
+    it('should call next with BadRequestException if team member not exists', async () => {
+      TeamMockModel.findOne = jest.fn().mockResolvedValueOnce(null);
+      await sut.deleteTeamMember(req, res, next);
+      expect(next).toHaveBeenCalledWith(new BadRequestException());
+    });
+
+    it('should call next with APIException if something went wrong', async () => {
+      TeamMockModel.findOne = jest.fn().mockRejectedValueOnce(new Error());
+      await sut.deleteTeamMember(req, res, next);
       expect(next).toHaveBeenCalledWith(new APIException());
     });
   });

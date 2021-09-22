@@ -14,6 +14,9 @@ module.exports = (router) => {
   router.post('/', newTeamValidator(), (req, res, next) =>
     controller.createTeam(req, res, next)
   );
+  router.delete('/:accountId/:userId/', (req, res, next) =>
+    controller.deleteTeamMember(req, res, next)
+  );
 
   return router;
 };
