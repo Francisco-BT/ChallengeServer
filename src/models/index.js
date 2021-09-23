@@ -5,4 +5,5 @@ module.exports = {
   Account: require('./Account'),
   Team: require('./Team'),
   TeamMovement: require('./TeamMovement'),
+  ErrorLog: require('./ErrorLog'),
 };
