@@ -21,7 +21,6 @@ if (process.env.NODE_ENV !== 'test') {
           description: 'Normal user just can edit his information',
         },
       ]);
-      // TODO: add Role as SuperAdmin
       await User.create({
         name: 'Super Admin',
         email: 'admin@admin.com',
