@@ -95,7 +95,7 @@ class AccountController extends BaseController {
           responsibleName,
           account.responsibleName
         );
-        res.status(200).json(account);
+        return res.status(200).json(account);
       }
       next(new BadRequestException());
     } catch {
