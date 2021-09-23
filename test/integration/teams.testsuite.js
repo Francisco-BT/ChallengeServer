@@ -214,8 +214,12 @@ module.exports = (agent) => {
 
     it('should return filtered data by startDate', async () => {
       await createTeams();
+      const today = new Date();
+      const dayInMs = 60 * 60 * 24 * 1000;
+      const yesterday = new Date(today.getTime() - dayInMs);
+      const tomorrow = new Date(today.getTime() + dayInMs);
       const response = await getTeams(
-        { startDate: '2021-09-21', endDate: '2021-09-23' },
+        { startDate: yesterday, endDate: tomorrow },
         token
       );
       expect(response.status).toBe(200);
