@@ -76,6 +76,25 @@ describe('Pagination utils', () => {
         }
       );
     });
+
+    it('should override default providing a defaultLimit in the object', () => {
+      const { limit } = paginationBoundaries({ defaultLimit: 30 });
+      expect(limit).toBe(30);
+    });
+
+    it('should override limit validLimit if a maxLimit is provided in the object', () => {
+      const { limit } = paginationBoundaries({ maxLimit: 100, limit: 50 });
+      expect(limit).toBe(50);
+    });
+
+    it('should set limit as defaultLimit is if provided and limit is greater than maxLimit', () => {
+      const { limit } = paginationBoundaries({
+        limit: 1000,
+        maxLimit: 100,
+        defaultLimit: 30,
+      });
+      expect(limit).toBe(30);
+    });
   });
 
   describe('Build Pagination', () => {

@@ -3,4 +3,6 @@ module.exports = {
   Role: require('./Role'),
   Token: require('./Token'),
   Account: require('./Account'),
+  Team: require('./Team'),
+  TeamMovement: require('./TeamMovement'),
 };

@@ -1,9 +1,16 @@
-exports.paginationBoundaries = ({ limit, page }) => {
-  let validLimit = parseInt(limit, 10) || 10;
+exports.paginationBoundaries = ({
+  limit,
+  page,
+  defaultLimit = 10,
+  maxLimit = 50,
+}) => {
+  defaultLimit = parseInt(defaultLimit, 10);
+  maxLimit = parseInt(maxLimit, 10);
+  let validLimit = parseInt(limit, 10) || defaultLimit;
   let currentPage = parseInt(page, 10) || 1;
 
-  if (validLimit >= 50 || validLimit <= 0) {
-    validLimit = 10;
+  if (validLimit >= maxLimit || validLimit <= 0) {
+    validLimit = defaultLimit;
   }
 
   if (currentPage <= 0) {

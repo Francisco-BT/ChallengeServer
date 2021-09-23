@@ -3,6 +3,7 @@ const { PORT } = require('./src/config');
 const { sequelize } = require('./src/services');
 const { Role, User } = require('./src/models');
 const { encrypt } = require('./src/utils');
+const { createUsers, createAccounts } = require('./test/integration/utils');
 
 // TODO: replace this logic by sequelize's seeds and migrations
 if (process.env.NODE_ENV !== 'test') {
@@ -28,10 +29,12 @@ if (process.env.NODE_ENV !== 'test') {
         password: await encrypt('123456'),
         roleId: roles[0].id,
       });
+      await createUsers(4);
+      await createAccounts(2);
       // console.log('USERS: ', await User.findAll());
       // console.log('ROLES: ', await Role.findAll());
     } catch (error) {
-      console.log('Error preparing the DB data');
+      console.log('Error preparing the DB data', error);
     }
   })();
 }
