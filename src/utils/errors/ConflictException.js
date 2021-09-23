@@ -6,6 +6,7 @@ class ConflictException extends APIException {
       'Ups, looks like there is a conflict, please validate your data',
       409
     );
+    this.name = 'ConflictException';
   }
 }
 

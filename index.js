@@ -1,5 +1,5 @@
 const app = require('./src/app');
-const { PORT } = require('./src/config');
+const { PORT, SUPER_ADMIN_PASSWORD } = require('./src/config');
 const { sequelize } = require('./src/services');
 const { Role, User } = require('./src/models');
 const { encrypt } = require('./src/utils');
@@ -21,11 +21,10 @@ if (process.env.NODE_ENV !== 'test') {
           description: 'Normal user just can edit his information',
         },
       ]);
-      // TODO: add Role as SuperAdmin
       await User.create({
         name: 'Super Admin',
         email: 'admin@admin.com',
-        password: await encrypt('123456'),
+        password: await encrypt(SUPER_ADMIN_PASSWORD),
         roleId: roles[0].id,
       });
       // console.log('USERS: ', await User.findAll());
