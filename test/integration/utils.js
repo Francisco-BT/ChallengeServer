@@ -66,3 +66,21 @@ exports.createTeam = async () => {
   });
   return team;
 };
+
+exports.createTeams = async () => {
+  const accounts = await exports.createAccounts(2);
+  const users = await exports.createUsers(3);
+
+  const newTeams = [];
+  for (const account of accounts) {
+    for (const user of users) {
+      newTeams.push({
+        accountId: account.id,
+        userId: user.id,
+      });
+    }
+  }
+
+  const teams = await Team.bulkCreate(newTeams);
+  return { teams, accounts, users };
+};

@@ -16,8 +16,8 @@ Team.init(
 
 Team.afterBulkCreate('logTeamCreation', async (team) => {
   const movements = [];
-  const account = await Account.findByPk(team[0].accountId);
   for (const member of team) {
+    const account = await Account.findByPk(member.accountId);
     const memberData = await User.findByPk(member.userId);
     movements.push({
       userId: memberData.id,

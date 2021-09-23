@@ -1,4 +1,4 @@
-const { Team } = require('../../models');
+const { Team, TeamMovement } = require('../../models');
 const { TeamController } = require('../../controllers');
 const {
   tokenAuthorization,
@@ -6,7 +6,7 @@ const {
   newTeamValidator,
 } = require('../../middlewares');
 
-const controller = new TeamController(Team);
+const controller = new TeamController(Team, TeamMovement);
 module.exports = (router) => {
   router.use(tokenAuthorization());
   router.use(roleAuthorization(['Admin', 'SuperAdmin']));
@@ -16,6 +16,12 @@ module.exports = (router) => {
   );
   router.delete('/:accountId/:userId/', (req, res, next) =>
     controller.deleteTeamMember(req, res, next)
+  );
+  router.put('/:accountId/:userId', (req, res, next) =>
+    controller.updateTeamMember(req, res, next)
+  );
+  router.get('/', (req, res, next) =>
+    controller.getTeamMovements(req, res, next)
   );
 
   return router;
