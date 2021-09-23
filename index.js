@@ -1,8 +1,8 @@
-const app = require('./src/app');
-const { PORT, SUPER_ADMIN_PASSWORD } = require('./src/config');
-const { sequelize } = require('./src/services');
-const { Role, User } = require('./src/models');
-const { encrypt } = require('./src/utils');
+const app = require('./server/src/app');
+const { PORT, SUPER_ADMIN_PASSWORD } = require('./server/src/config');
+const { sequelize } = require('./server/src/services');
+const { Role, User } = require('./server/src/models');
+const { encrypt } = require('./server/src/utils');
 
 // TODO: replace this logic by sequelize's seeds and migrations
 if (process.env.NODE_ENV !== 'test') {
