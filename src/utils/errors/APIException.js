@@ -3,6 +3,7 @@ class APIException extends Error {
     super(message);
     this.status = status;
     this.errors = errors;
+    this.name = 'APIException';
   }
 }
 
