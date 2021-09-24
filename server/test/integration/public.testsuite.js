@@ -6,13 +6,6 @@ const publicTestsSuite = (agent) => {
         const response = await getRoot();
         expect(response.status).toBe(200);
       });
-
-      it('should returns a message saying Welcome!', async () => {
-        const response = await getRoot();
-        expect(response.body).toBeDefined();
-        expect(response.body.message).toBeDefined();
-        expect(response.body.message).toContain('Welcome!');
-      });
     });
   });
 };

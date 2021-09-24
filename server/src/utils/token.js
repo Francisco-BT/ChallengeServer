@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { JWT_ISSUER, JWT_SECRET, JWT_EXPIRATION } = require('../config');
 const { Token } = require('../models');
-const { TokenGenerationException } = require('../utils/errors');
+const { TokenGenerationException } = require('./errors');
 
 exports.generateToken = async (payload, model = Token) => {
   try {
