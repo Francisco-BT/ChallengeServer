@@ -1,0 +1,15 @@
+.pagination > li > a {
+    color: #ce0002;
+}
+
+.pagination > li > a:focus,
+.pagination > li > a:hover,
+.pagination > li > span:focus,
+.pagination > li > span:hover {
+    color: #ce0002;
+}
+
+.pagination > .page-item.active > .page-link  {
+    background-color: #ce0002;
+    border-color: #ce0002;
+}
