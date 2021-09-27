@@ -56,15 +56,40 @@ module.exports = {
           bearerAuth: [],
         },
       ],
+      parameters: [
+        {
+          name: 'page',
+          in: 'query',
+          schema: {
+            $ref: '#/components/schemas/PaginationPage',
+          },
+        },
+        {
+          name: 'limit',
+          in: 'query',
+          schema: {
+            $ref: '#/components/schemas/PaginationLimit',
+          },
+        },
+      ],
       responses: {
         200: {
           description: 'The list of users',
           content: {
             'application/json': {
               schema: {
-                type: 'array',
-                items: {
-                  $ref: '#/components/schemas/User',
+                type: 'object',
+                properties: {
+                  items: {
+                    type: 'array',
+                    items: {
+                      $ref: '#/components/schemas/User',
+                    },
+                  },
+                  pagination: {
+                    type: 'object',
+                    $ref: '#/components/schemas/Pagination',
+                  },
                 },
               },
             },

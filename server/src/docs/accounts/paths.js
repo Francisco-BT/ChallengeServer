@@ -10,7 +10,6 @@ module.exports = {
         {
           name: 'page',
           in: 'query',
-          required: true,
           schema: {
             $ref: '#/components/schemas/PaginationPage',
           },
@@ -18,7 +17,6 @@ module.exports = {
         {
           name: 'limit',
           in: 'query',
-          required: true,
           schema: {
             $ref: '#/components/schemas/PaginationLimit',
           },
