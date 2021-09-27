@@ -5,7 +5,7 @@ import { AppRouter } from './routers';
 function App() {
   return (
     <ProvideAuth>
-      <AppRouter />;
+      <AppRouter />
     </ProvideAuth>
   );
 }

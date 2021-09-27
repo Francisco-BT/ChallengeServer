@@ -7,8 +7,13 @@ export function useProvideAuth() {
 
   useEffect(() => {
     const userInStorage = localStorage.getItem('user');
+
     if (userInStorage) {
-      return setUser(userInStorage);
+      try {
+        return setUser(JSON.parse(userInStorage));
+      } catch {
+        return setUser(null);
+      }
     }
     setUser(null);
   }, []);
