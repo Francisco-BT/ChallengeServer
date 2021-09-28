@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { createResponse } = require('node-mocks-http');
 const { RoleController, BaseController } = require('../../../src/controllers');
 const { APIException } = require('../../../src/utils/errors');
@@ -37,10 +38,11 @@ describe('Role Controller Class', () => {
       expect(mockRoleModel.findAll).toHaveBeenCalled();
     });
 
-    it('should calls Role.findAll with a select operator', () => {
+    it('should calls Role.findAll with a select operator to omit SuperAdmin role', () => {
       sut.getRoles(null, res);
       expect(mockRoleModel.findAll).toHaveBeenCalledWith({
         attributes: ['id', 'name', 'description'],
+        where: { name: { [Op.not]: 'SuperAdmin' } },
       });
     });
 

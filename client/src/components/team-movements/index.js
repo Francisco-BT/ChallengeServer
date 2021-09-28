@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Container } from 'react-bootstrap';
 
 import LoaderIndicator from '../loader-indicator';
-import Table, { TableHead, TableBody, ActionsColumn } from '../table';
+import Table, { TableHead, TableBody } from '../table';
 import { useTeamsMovements, useAuth } from '../../hooks';
 
 export default function TeamMovementsPage() {
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(50);
   const { movements, pagination, error, loading } = useTeamsMovements(
     page,
     limit
@@ -24,7 +24,6 @@ export default function TeamMovementsPage() {
     return <LoaderIndicator />;
   }
 
-  console.log('Movements: ', movements);
   return (
     <Container style={{ marginTop: '30px' }}>
       <h3
@@ -38,6 +37,7 @@ export default function TeamMovementsPage() {
         Team Movements Log
       </h3>
       <Table
+        limitOptions={[50, 100, 200]}
         pagination={pagination}
         onPageChange={(page) => setPage(page)}
         currentLimit={limit}

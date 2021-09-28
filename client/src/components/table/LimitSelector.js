@@ -11,8 +11,8 @@ export default function LimitSelector({
       value={currentLimit}
       onChange={(e) => onLimitChange(e.target.value)}
     >
-      {options.map((option) => (
-        <option selected={option === currentLimit} value={option}>
+      {options.map((option, idx) => (
+        <option key={option + idx} value={option}>
           Items Per Page: {option}
         </option>
       ))}

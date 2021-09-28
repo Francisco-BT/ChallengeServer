@@ -1,10 +1,11 @@
 import { usePaginationRequest } from './usePaginationRequest';
 
-export function useUsers(page, limit) {
+export function useUsers(page, limit, fetchData) {
   const { items, pagination, loading, error } = usePaginationRequest(
     '/api/v1/users',
     page,
-    limit
+    limit,
+    fetchData
   );
 
   return {
