@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 
-export default function ActionsColumn() {
+export function ActionsColumn() {
   return (
     <td>
       <div style={{ display: 'flex', justifyContent: 'space-evenly' }}>

@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { Container } from 'react-bootstrap';
 
-import { useUsers, useAuth } from '../../hooks';
 import LoaderIndicator from '../loader-indicator';
-import Table from '../table';
-import TableHead from './table-head';
-import TableBody from './table-body';
+import Table, { TableHead, TableBody, ActionsColumn } from '../table';
+import { useUsers, useAuth } from '../../hooks';
 
 export default function UsersPage() {
   const [page, setPage] = useState(1);
@@ -41,8 +39,18 @@ export default function UsersPage() {
         currentLimit={limit}
         onLimitChange={(limit) => setLimit(limit)}
       >
-        <TableHead />
-        <TableBody users={users} />
+        <TableHead labels={['#', 'Name', 'Email', 'Actions']} />
+        <TableBody
+          items={users}
+          renderFunction={(user) => (
+            <tr key={user.id}>
+              <td>{user.id}</td>
+              <td>{user.name}</td>
+              <td>{user.email}</td>
+              <ActionsColumn />
+            </tr>
+          )}
+        />
       </Table>
     </Container>
   );

@@ -16,11 +16,14 @@ export default function NavBar() {
             <Link className="nav-link" to="/home">
               Home
             </Link>
-            <Link className="nav-link" to="/Users">
+            <Link className="nav-link" to="/users">
               Users
             </Link>
-            <Link className="nav-link" to="/Accounts">
+            <Link className="nav-link" to="/accounts">
               Accounts
+            </Link>
+            <Link className="nav-link" to="/teams">
+              Teams
             </Link>
           </Nav>
           <Nav>
