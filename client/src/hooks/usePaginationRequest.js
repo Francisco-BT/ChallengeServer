@@ -1,8 +1,10 @@
-import axios from 'axios';
 import { useEffect, useState } from 'react';
+import axios from 'axios';
+
+import { api } from '../services';
 
 const CancelToken = axios.CancelToken;
-export function usePaginationRequest(requestFn, page, limit) {
+export function usePaginationRequest(url, page, limit) {
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({});
   const [error, setError] = useState(null);
@@ -13,7 +15,7 @@ export function usePaginationRequest(requestFn, page, limit) {
     const request = async () => {
       try {
         setLoading(true);
-        const { data } = await requestFn({
+        const { data } = await api.get(url, {
           cancelToken: source.token,
           params: { page, limit },
         });
@@ -38,7 +40,7 @@ export function usePaginationRequest(requestFn, page, limit) {
     return () => {
       source.cancel();
     };
-  }, [page, limit, requestFn]);
+  }, [page, limit, url]);
 
   return {
     items,

@@ -22,8 +22,8 @@ export default function NavBar() {
             <Link className="nav-link" to="/accounts">
               Accounts
             </Link>
-            <Link className="nav-link" to="/teams">
-              Teams
+            <Link className="nav-link" to="/team-movements">
+              Team Movements
             </Link>
           </Nav>
           <Nav>

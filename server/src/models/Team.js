@@ -27,6 +27,7 @@ Team.afterBulkCreate('logTeamCreation', async (team) => {
       accountName: account.name,
       operation: 'Create',
       startDate: member.createdAt,
+      endDate: null,
     });
   }
   await TeamMovement.bulkCreate(movements);
@@ -43,6 +44,7 @@ Team.afterDestroy('logTeamMemberDelete', async (teamMember) => {
     accountName: account.name,
     operation: 'Delete',
     startDate: teamMember.createdAt,
+    endDate: new Date(),
   });
 });
 
