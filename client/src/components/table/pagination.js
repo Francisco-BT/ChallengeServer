@@ -1,22 +1,47 @@
 import { Pagination } from 'react-bootstrap';
 import './Pagination.css';
 
-export default function MyPagination({ totalPages = 1 }) {
+export default function MyPagination({
+  currentPage = 1,
+  hasNext,
+  hasPrevious,
+  totalPages = 1,
+  onPageChange,
+}) {
   return (
-    <Pagination
-      style={{ justifyContent: 'flex-end', color: '#ce0002!important;' }}
-    >
-      <Pagination.First />
-      <Pagination.Prev />
+    <Pagination style={{ justifyContent: 'flex-end' }}>
+      <Pagination.First
+        disabled={!hasPrevious}
+        onClick={() => onPageChange(1)}
+      />
+      <Pagination.Prev
+        disabled={!hasPrevious}
+        onClick={() => onPageChange(currentPage - 1)}
+      />
 
       {Array(totalPages)
         .fill(null)
-        .map((_, idx) => (
-          <Pagination.Item active>{idx + 1}</Pagination.Item>
-        ))}
+        .map((_, idx) => {
+          const realIdx = idx + 1;
+          return (
+            <Pagination.Item
+              key={realIdx}
+              active={realIdx === currentPage}
+              onClick={() => onPageChange(realIdx)}
+            >
+              {idx + 1}
+            </Pagination.Item>
+          );
+        })}
 
-      <Pagination.Next />
-      <Pagination.Last />
+      <Pagination.Next
+        disabled={!hasNext}
+        onClick={() => onPageChange(currentPage + 1)}
+      />
+      <Pagination.Last
+        disabled={!hasNext}
+        onClick={() => onPageChange(totalPages)}
+      />
     </Pagination>
   );
 }

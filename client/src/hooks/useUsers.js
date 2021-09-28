@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { api } from '../services';
 
 const CancelToken = axios.CancelToken;
-
 export function useUsers(page, limit) {
   const [users, setUsers] = useState([]);
+  const [pagination, setPagination] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -17,8 +17,10 @@ export function useUsers(page, limit) {
         setLoading(true);
         const { data } = await api.get('api/v1/users', {
           cancelToken: source.token,
+          params: { page, limit },
         });
-        setUsers(data);
+        setUsers(data.items);
+        setPagination(data.pagination);
       } catch (error) {
         let logOut = false;
         if (error.response && error.response.status === 401) {
@@ -42,6 +44,7 @@ export function useUsers(page, limit) {
 
   return {
     users,
+    pagination,
     error,
     loading,
   };
