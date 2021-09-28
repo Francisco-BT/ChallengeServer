@@ -1,48 +1,21 @@
-import axios from 'axios';
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 
 import { api } from '../services';
+import { usePaginationRequest } from './usePaginationRequest';
 
-const CancelToken = axios.CancelToken;
 export function useAccounts(page, limit) {
-  const [accounts, setAccounts] = useState([]);
-  const [pagination, setPagination] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const requestAccounts = useCallback((config) => {
+    return api.get('/api/v1/accounts', config);
+  }, []);
 
-  useEffect(() => {
-    const source = CancelToken.source();
-    const requestAccounts = async () => {
-      setLoading(true);
-      try {
-        const { data } = await api.get('/api/v1/accounts', {
-          cancelToken: source.token,
-          params: { page, limit },
-        });
-        setAccounts(data.items);
-        setPagination(data.pagination);
-      } catch (error) {
-        let logOut = false;
-        if (error.response && error.response.status === 401) {
-          logOut = true;
-        }
-
-        setError({
-          message: error.message,
-          logOut,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    requestAccounts();
-    return () => {
-      source.cancel();
-    };
-  }, [page, limit]);
+  const { items, pagination, loading, error } = usePaginationRequest(
+    requestAccounts,
+    page,
+    limit
+  );
 
   return {
-    accounts,
+    accounts: items,
     pagination,
     loading,
     error,
