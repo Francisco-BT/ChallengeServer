@@ -117,25 +117,27 @@ export default function UserModal({
           </Form.Group>
         ) : null}
 
-        <Form.Group className="mb-3" controlId="formUserRoleId">
-          <Form.Label>Role</Form.Label>
-          <DisableSelect
-            disabled={viewing}
-            placeholder="Select the role"
-            value={user.roleId}
-            onChange={(e) =>
-              setUser((user) => ({ ...user, roleId: e.target.value }))
-            }
-          >
-            <option value={''}>Select the role for the user</option>
-            {roles.map((role) => (
-              <option value={role.id} key={role.id}>
-                {role.name}
-              </option>
-            ))}
-          </DisableSelect>
-          <ValidationError error={errors['roleId']} />
-        </Form.Group>
+        {editing ? null : (
+          <Form.Group className="mb-3" controlId="formUserRoleId">
+            <Form.Label>Role</Form.Label>
+            <DisableSelect
+              disabled={viewing}
+              placeholder="Select the role"
+              value={user.roleId}
+              onChange={(e) =>
+                setUser((user) => ({ ...user, roleId: e.target.value }))
+              }
+            >
+              <option value={''}>Select the role for the user</option>
+              {roles.map((role) => (
+                <option value={role.id} key={role.id}>
+                  {role.name}
+                </option>
+              ))}
+            </DisableSelect>
+            <ValidationError error={errors['roleId']} />
+          </Form.Group>
+        )}
 
         <Form.Group className="mb-3" controlId="formUserEnglishLevel">
           <Form.Label>EnglishLevel</Form.Label>

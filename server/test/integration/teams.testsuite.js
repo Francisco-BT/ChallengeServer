@@ -55,7 +55,7 @@ module.exports = (agent) => {
       const response = await postTeam(null, '', token);
       expect(response.status).toBe(400);
       expect(response.body.errors).toEqual(
-        expect.objectContaining({ accountId: 'Account ID cannot be null' }),
+        expect.objectContaining({ accountId: 'Account ID cannot be empty' }),
         expect.objectContaining({
           members: 'Members must be an array of user IDs',
         })

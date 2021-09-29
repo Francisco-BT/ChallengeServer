@@ -32,7 +32,8 @@ const invokeMiddlewares = async (middlewares) => {
 
 describe('User Validators Middleware', () => {
   const commonValidationCases = [
-    { field: 'name', value: null, expectedMessage: 'Name cannot be null' },
+    { field: 'name', value: null, expectedMessage: 'Name cannot be empty' },
+    { field: 'name', value: '   ', expectedMessage: 'Name cannot be empty' },
     { field: 'name', value: false, expectedMessage: 'Name must be a string' },
     {
       field: 'name',
@@ -59,12 +60,22 @@ describe('User Validators Middleware', () => {
     },
     {
       field: 'englishLevel',
+      value: '   ',
+      expectedMessage: 'English Level must be either (A1, A2, B1, B2, C1, C2)',
+    },
+    {
+      field: 'englishLevel',
       value: 'Advanced',
       expectedMessage: 'English Level must be either (A1, A2, B1, B2, C1, C2)',
     },
     {
       field: 'cvLink',
       value: true,
+      expectedMessage: 'CV Link must have an URL format',
+    },
+    {
+      field: 'cvLink',
+      value: '   ',
       expectedMessage: 'CV Link must have an URL format',
     },
     {
@@ -90,7 +101,12 @@ describe('User Validators Middleware', () => {
     });
 
     it.each([
-      { field: 'email', value: null, expectedMessage: 'Email cannot be null' },
+      { field: 'email', value: null, expectedMessage: 'Email cannot be empty' },
+      {
+        field: 'email',
+        value: '   ',
+        expectedMessage: 'Email cannot be empty',
+      },
       {
         field: 'email',
         value: false,
@@ -119,7 +135,12 @@ describe('User Validators Middleware', () => {
       {
         field: 'password',
         value: null,
-        expectedMessage: 'Password cannot be null',
+        expectedMessage: 'Password cannot be empty',
+      },
+      {
+        field: 'password',
+        value: '   ',
+        expectedMessage: 'Password cannot be empty',
       },
       {
         field: 'password',
@@ -164,7 +185,12 @@ describe('User Validators Middleware', () => {
       {
         field: 'roleId',
         value: null,
-        expectedMessage: 'Role cannot be null',
+        expectedMessage: 'Role cannot be empty',
+      },
+      {
+        field: 'roleId',
+        value: '   ',
+        expectedMessage: 'Role cannot be empty',
       },
       {
         field: 'roleId',
@@ -189,7 +215,12 @@ describe('User Validators Middleware', () => {
       {
         field: 'technicalKnowledge',
         value: null,
-        expectedMessage: 'Technical Knowledge cannot be null',
+        expectedMessage: 'Technical Knowledge cannot be empty',
+      },
+      {
+        field: 'technicalKnowledge',
+        value: '   ',
+        expectedMessage: 'Technical Knowledge cannot be empty',
       },
       {
         field: 'technicalKnowledge',
@@ -254,13 +285,19 @@ describe('User Validators Middleware', () => {
 
 describe('Account Validators Middleware', () => {
   const accountValidations = [
-    { field: 'name', value: null, expectedMessage: 'Name cannot be null' },
+    { field: 'name', value: null, expectedMessage: 'Name cannot be empty' },
     { field: 'name', value: false, expectedMessage: 'Name must be a string' },
-    { field: 'name', value: '', expectedMessage: 'Name cannot be null' },
+    { field: 'name', value: '', expectedMessage: 'Name cannot be empty' },
+    { field: 'name', value: '  ', expectedMessage: 'Name cannot be empty' },
     {
       field: 'clientName',
       value: null,
-      expectedMessage: 'Client Name cannot be null',
+      expectedMessage: 'Client Name cannot be empty',
+    },
+    {
+      field: 'clientName',
+      value: '  ',
+      expectedMessage: 'Client Name cannot be empty',
     },
     {
       field: 'clientName',
@@ -270,22 +307,27 @@ describe('Account Validators Middleware', () => {
     {
       field: 'clientName',
       value: '',
-      expectedMessage: 'Client Name cannot be null',
+      expectedMessage: 'Client Name cannot be empty',
     },
     {
       field: 'responsibleName',
       value: undefined,
-      expectedMessage: 'Responsible Name cannot be null',
+      expectedMessage: 'Responsible Name cannot be empty',
     },
     {
       field: 'responsibleName',
       value: null,
-      expectedMessage: 'Responsible Name cannot be null',
+      expectedMessage: 'Responsible Name cannot be empty',
+    },
+    {
+      field: 'responsibleName',
+      value: '   ',
+      expectedMessage: 'Responsible Name cannot be empty',
     },
     {
       field: 'responsibleName',
       value: '',
-      expectedMessage: 'Responsible Name cannot be null',
+      expectedMessage: 'Responsible Name cannot be empty',
     },
     {
       field: 'responsibleName',
@@ -350,13 +392,18 @@ describe('Team Validators Middleware', () => {
     it.each([
       {
         field: 'accountId',
+        value: '   ',
+        expectedMessage: 'Account ID must be an integer',
+      },
+      {
+        field: 'accountId',
         value: null,
-        expectedMessage: 'Account ID cannot be null',
+        expectedMessage: 'Account ID cannot be empty',
       },
       {
         field: 'accountId',
         value: undefined,
-        expectedMessage: 'Account ID cannot be null',
+        expectedMessage: 'Account ID cannot be empty',
       },
       {
         field: 'accountId',
@@ -372,6 +419,11 @@ describe('Team Validators Middleware', () => {
         field: 'accountId',
         value: [12, 23],
         expectedMessage: 'Account ID must be an integer',
+      },
+      {
+        field: 'members',
+        value: '  ',
+        expectedMessage: 'Members must be an array of integers',
       },
       {
         field: 'members',
@@ -394,7 +446,7 @@ describe('Team Validators Middleware', () => {
         expectedMessage: 'Members must be an array of integers',
       },
     ])(
-      'should return $expectedMessage when field $field is $value',
+      'should return $expectedMessage when $field is $value',
       async ({ field, value, expectedMessage }) => {
         req.body[field] = value;
         await invokeMiddlewares(newTeamValidator());

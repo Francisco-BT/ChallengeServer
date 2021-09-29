@@ -57,8 +57,8 @@ module.exports = (agent) => {
       );
       expect(response.status).toBe(400);
       expect(response.body.errors).toEqual(
-        expect.objectContaining({ name: 'Name cannot be null' }),
-        expect.objectContaining({ clientName: 'ClientName cannot be null' }),
+        expect.objectContaining({ name: 'Name cannot be empty' }),
+        expect.objectContaining({ clientName: 'ClientName cannot be empty' }),
         expect.objectContaining({
           responsibleName:
             'Responsible Name cannot contain number or special characters',

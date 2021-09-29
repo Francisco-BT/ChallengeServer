@@ -212,13 +212,14 @@ describe('User Controller', () => {
       expect(mockUserModel.findAndCountAll).toHaveBeenCalled();
     });
 
-    it('should call User.findAndCountAll using offset, limit and include Role model', async () => {
+    it('should call User.findAndCountAll using offset, limit and include Role model ordered by id ASC', async () => {
       req.query = { page: 1, limit: 10 };
       await sut.getAll(req, res, next);
       expect(mockUserModel.findAndCountAll).toHaveBeenCalledWith({
         offset: 0,
         limit: 10,
         include: 'role',
+        order: [['id', 'ASC']],
       });
     });
 

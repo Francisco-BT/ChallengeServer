@@ -82,9 +82,9 @@ const userTestsSuite = (agent) => {
         expect(response.status).toBe(400);
         expect(response.body.errors).toBeDefined();
         expect(response.body.errors).toEqual(
-          expect.objectContaining({ password: 'Password cannot be null' }),
-          expect.objectContaining({ email: 'Email cannot be null' }),
-          expect.objectContaining({ name: 'Name cannot be null' })
+          expect.objectContaining({ password: 'Password cannot be empty' }),
+          expect.objectContaining({ email: 'Email cannot be empty' }),
+          expect.objectContaining({ name: 'Name cannot be empty' })
         );
       });
 

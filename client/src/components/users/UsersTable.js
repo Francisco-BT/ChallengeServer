@@ -74,6 +74,14 @@ export default function UsersTable({ logOut, showToast }) {
                     userData: user,
                   })
                 }
+                onEdit={() =>
+                  setModalProps({
+                    ...modalPropsInitialState,
+                    open: true,
+                    editing: true,
+                    userData: user,
+                  })
+                }
               />
             </tr>
           )}

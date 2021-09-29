@@ -31,9 +31,9 @@ if (process.env.NODE_ENV === 'test') {
         password: await encrypt(SUPER_ADMIN_PASSWORD),
         roleId: roles[0].id,
       });
-      await createUsers(20);
-      await createUsers(10, 'Admin', 20);
-      await createAccounts(13);
+      await createUsers(8);
+      await createUsers(5, 'Admin', 8);
+      await createAccounts(7);
       // console.log('USERS: ', await User.findAll());
       // console.log('ROLES: ', await Role.findAll());
     } catch (error) {
