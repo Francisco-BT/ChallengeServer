@@ -1,6 +1,6 @@
 import { Table, Row, Col } from 'react-bootstrap';
 
-import Pagination from './Pagination';
+import Pagination from './pagination';
 import LimitSelector from './LimitSelector';
 
 export default function CustomTable({
