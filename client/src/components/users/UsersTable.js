@@ -8,7 +8,7 @@ import Table, {
   TableTitle,
 } from '../table';
 import UserModal from './UserModal';
-import { useUsers } from '../../hooks';
+import { useUsers, useDeleteUser, useDeleteModal } from '../../hooks';
 
 const modalPropsInitialState = Object.freeze({
   open: false,
@@ -23,6 +23,14 @@ export default function UsersTable({ logOut, showToast }) {
   const [fetchData, setFetchData] = useState(true);
   const [modalProps, setModalProps] = useState(modalPropsInitialState);
   const triggerDataFetch = () => setFetchData((fetchData) => !fetchData);
+  const fire = useDeleteModal();
+  const { deleteUser } = useDeleteUser({
+    onSuccess: (name) => {
+      showToast(`User ${name} has been deleted`, 'success');
+      triggerDataFetch();
+    },
+    onError: (message) => showToast(message, 'error'),
+  });
   const { users, pagination, error, loading } = useUsers(
     page,
     limit,
@@ -82,6 +90,9 @@ export default function UsersTable({ logOut, showToast }) {
                     userData: user,
                   })
                 }
+                onDelete={() => {
+                  fire(() => deleteUser(user.id, user.name));
+                }}
               />
             </tr>
           )}

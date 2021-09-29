@@ -67,3 +67,36 @@ export function useSaveUser(editing, user, id, onSuccess, onError) {
     saveUser,
   };
 }
+
+export function useDeleteUser({ onSuccess, onError }) {
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState(null);
+
+  const deleteUser = useCallback(
+    async (id, name) => {
+      const source = axios.CancelToken.source();
+      setLoading(true);
+      setErrors({});
+      try {
+        await api.delete(`/api/v1/users/${id}`, {
+          cancelToken: source.token,
+        });
+        onSuccess((name = ''));
+        return true;
+      } catch {
+        const message =
+          'There was an error deleting the user, please try again.';
+        setErrors({
+          message,
+        });
+        onError(message);
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [onSuccess, onError]
+  );
+
+  return { loading, errors, deleteUser };
+}

@@ -1,6 +1,7 @@
 export { useAuth } from '../auth';
 export { useUserProfile } from './useUserProfile';
-export * from './useUsers';
+export * from './users';
 export * from './useAccounts';
 export * from './useTeamsMovements';
 export * from './useRoles';
+export { useDeleteModal } from './useDeleteModal';
