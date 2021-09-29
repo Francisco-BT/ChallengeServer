@@ -1,0 +1,29 @@
+.Home-title {
+  text-align: center;
+  font-weight: 800;
+  margin-top: 50px;
+  text-shadow: 6px 6px 0px rgba(0,0,0,0.2);
+}
+
+.Home-user-card-container {
+  background: rgba(181, 181, 181, 0.2);
+  max-width: 420px;
+  border-radius: 20px;
+  padding: 20px;
+  margin: 40px auto ;
+}
+
+.Home-user-card {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #a1a1a1;
+
+}
+
+.Home-user-card-key {
+  font-weight: 700;
+  color: #ce0002;
+}

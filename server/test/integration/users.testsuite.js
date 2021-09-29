@@ -67,6 +67,7 @@ const userTestsSuite = (agent) => {
           'technicalKnowledge',
           'cvLink',
           'role',
+          'roleId',
         ]);
       });
 
@@ -81,9 +82,9 @@ const userTestsSuite = (agent) => {
         expect(response.status).toBe(400);
         expect(response.body.errors).toBeDefined();
         expect(response.body.errors).toEqual(
-          expect.objectContaining({ password: 'Password cannot be null' }),
-          expect.objectContaining({ email: 'Email cannot be null' }),
-          expect.objectContaining({ name: 'Name cannot be null' })
+          expect.objectContaining({ password: 'Password cannot be empty' }),
+          expect.objectContaining({ email: 'Email cannot be empty' }),
+          expect.objectContaining({ name: 'Name cannot be empty' })
         );
       });
 
@@ -104,8 +105,11 @@ const userTestsSuite = (agent) => {
     });
 
     describe('GET - /api/v1/users', () => {
-      const requestUsers = async (token = authToken) => {
-        return await agent.get('/api/v1/users').auth(token, { type: 'bearer' });
+      const requestUsers = async (token = authToken, query = {}) => {
+        return await agent
+          .get('/api/v1/users')
+          .auth(token, { type: 'bearer' })
+          .query(query);
       };
 
       it('should response 403 if the request comes from a normal user', async () => {
@@ -134,18 +138,19 @@ const userTestsSuite = (agent) => {
         await createUsers(5, 'TestGetAll');
         const response = await requestUsers();
         expect(response.status).toBe(200);
-        expect(Array.isArray(response.body)).toBeTruthy();
-        expect(response.body.length).toBeGreaterThanOrEqual(5);
+        expect(Array.isArray(response.body.items)).toBeTruthy();
+        expect(response.body.items.length).toBeGreaterThanOrEqual(5);
       });
 
       it('should returns users with at least id, name, email, role', async () => {
         await createUsers(1, 'TestGetAll');
         const response = await requestUsers();
-        const user = response.body[0];
+        const user = response.body.items[1];
         expect(user).toHaveProperty('id');
         expect(user).toHaveProperty('name');
         expect(user).toHaveProperty('email');
-        // expect(user).toHaveProperty('role');
+        expect(user).toHaveProperty('role');
+        expect(user.role).toBe('TestGetAll');
         expect(user).not.toHaveProperty('createdAt');
         expect(user).not.toHaveProperty('password');
       });
@@ -163,6 +168,29 @@ const userTestsSuite = (agent) => {
         expect(response.status).toBe(500);
         expect(response.body.message).toBe('Internal Server Error');
         expect(response.body.timestamp).toBeGreaterThan(currentTime);
+      });
+
+      it('should return a pagination object in the response', async () => {
+        const response = await requestUsers();
+        expect(response.body.pagination).toBeDefined();
+        expect(Object.keys(response.body.pagination)).toEqual([
+          'totalPages',
+          'limit',
+          'hasNext',
+          'hasPrevious',
+          'currentPage',
+          'total',
+        ]);
+      });
+
+      it('should return a pagination with override values depending on req.query values', async () => {
+        await createUsers(40);
+        const response = await requestUsers(authToken, { limit: 15, page: 2 });
+        const pagination = response.body.pagination;
+        expect(pagination.totalPages).toBe(3);
+        expect(pagination.limit).toBe(15);
+        expect(pagination.hasNext).toBeTruthy();
+        expect(pagination.hasPrevious).toBeTruthy();
       });
     });
 

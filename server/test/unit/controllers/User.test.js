@@ -43,24 +43,35 @@ describe('User Controller', () => {
     mockUserModel = {
       findOne: jest.fn(),
       create: jest.fn().mockResolvedValueOnce({ ...resolvedUser }),
-      findAll: jest.fn().mockResolvedValueOnce([
-        {
-          id: 1,
-          name: 'User 1',
-          email: 'user1@mail.com',
-          englishLevel: null,
-          technicalKnowledge: null,
-          cvLink: null,
-        },
-        {
-          id: 2,
-          name: 'User 2',
-          email: 'user2@mail.com',
-          englishLevel: 'A2',
-          technicalKnowledge: null,
-          cvLink: 'www.google.com',
-        },
-      ]),
+      findAndCountAll: jest.fn().mockResolvedValueOnce({
+        rows: [
+          {
+            id: 1,
+            name: 'User 1',
+            email: 'user1@mail.com',
+            englishLevel: null,
+            technicalKnowledge: null,
+            cvLink: null,
+            role: {
+              id: 1,
+              name: 'Role Test 1',
+            },
+          },
+          {
+            id: 2,
+            name: 'User 2',
+            email: 'user2@mail.com',
+            englishLevel: 'A2',
+            technicalKnowledge: null,
+            cvLink: 'www.google.com',
+            role: {
+              id: 2,
+              name: 'Role Test 2',
+            },
+          },
+        ],
+        count: 2,
+      }),
       findByPk: jest.fn().mockResolvedValueOnce({
         ...resolvedUser,
         englishLevel: 'A2',
@@ -196,9 +207,34 @@ describe('User Controller', () => {
       expect(typeof sut.getAll).toBe('function');
     });
 
-    it('should call User.findAll()', async () => {
+    it('should call User.findAndCountAll()', async () => {
       await sut.getAll(req, res, {});
-      expect(mockUserModel.findAll).toHaveBeenCalled();
+      expect(mockUserModel.findAndCountAll).toHaveBeenCalled();
+    });
+
+    it('should call User.findAndCountAll using offset, limit and include Role model ordered by id ASC', async () => {
+      req.query = { page: 1, limit: 10 };
+      await sut.getAll(req, res, next);
+      expect(mockUserModel.findAndCountAll).toHaveBeenCalledWith({
+        offset: 0,
+        limit: 10,
+        include: 'role',
+        order: [['id', 'ASC']],
+      });
+    });
+
+    it('should return a pagination object that calculate total pages, hasNext and hasPrevious using req.query', async () => {
+      req.query = { page: 3, limit: 5 };
+      mockUserModel.findAndCountAll = jest.fn().mockResolvedValueOnce({
+        rows: [],
+        count: 22,
+      });
+      await sut.getAll(req, res, next);
+
+      const pagination = res._getJSONData().pagination;
+      expect(pagination.totalPages).toBe(5);
+      expect(pagination.hasNext).toBeTruthy();
+      expect(pagination.hasPrevious).toBeTruthy();
     });
 
     it('should return 200 - OK in the response', async () => {
@@ -207,20 +243,23 @@ describe('User Controller', () => {
       expect(res._isEndCalled()).toBeTruthy();
     });
 
-    it('should return a list of users in the response', async () => {
-      mockUserModel.findAll = jest.fn().mockResolvedValue([
-        { id: 1, name: 'User 1', email: 'user1@mail.com' },
-        { id: 2, name: 'User 2', email: 'user2@mail.com' },
-      ]);
+    it('should return a list of users in the response as items', async () => {
+      mockUserModel.findAndCountAll = jest.fn().mockResolvedValue({
+        rows: [
+          { id: 1, name: 'User 1', email: 'user1@mail.com' },
+          { id: 2, name: 'User 2', email: 'user2@mail.com' },
+        ],
+        count: 2,
+      });
       await sut.getAll(req, res, {});
       const body = res._getJSONData();
-      expect(Array.isArray(body)).toBeTruthy();
-      expect(body.length).toBe(2);
+      expect(Array.isArray(body.items)).toBeTruthy();
+      expect(body.items.length).toBe(2);
     });
 
-    it('should return id, name, email, englishLevel, technicalKnowledge, cvLink per user', async () => {
+    it('should return id, name, email, englishLevel, technicalKnowledge, cvLink, role and roleId per user', async () => {
       await sut.getAll(req, res, {});
-      const body = res._getJSONData();
+      const body = res._getJSONData().items;
       const returnedFields = [
         'id',
         'name',
@@ -228,17 +267,36 @@ describe('User Controller', () => {
         'englishLevel',
         'technicalKnowledge',
         'cvLink',
+        'role',
+        'roleId',
       ];
       expect(Object.keys(body[0])).toEqual(returnedFields);
       expect(Object.keys(body[1])).toEqual(returnedFields);
     });
 
     it('should call next with APIException on error', async () => {
-      mockUserModel.findAll = jest.fn().mockRejectedValueOnce(new Error());
+      mockUserModel.findAndCountAll = jest
+        .fn()
+        .mockRejectedValueOnce(new Error());
       await sut.getAll(req, res, next);
 
       expect(next).toHaveBeenCalled();
       expect(next).toHaveBeenCalledWith(new APIException());
+    });
+
+    it('should return a pagination object in the response', async () => {
+      await sut.getAll(req, res, next);
+      const pagination = res._getJSONData().pagination;
+      expect(pagination).toBeDefined();
+      expect(Object.keys(pagination)).toEqual(
+        expect.arrayContaining([
+          'totalPages',
+          'currentPage',
+          'hasNext',
+          'hasPrevious',
+          'total',
+        ])
+      );
     });
   });
 
@@ -354,7 +412,7 @@ describe('User Controller', () => {
       expect(res._isEndCalled()).toBeTruthy();
     });
 
-    it('should return a user id, name, email, englishLevel, technicalKnowledge, cvLink and role in the response body', async () => {
+    it('should return a user id, name, email, englishLevel, technicalKnowledge, cvLink, role and roleId in the response body', async () => {
       await sut.getUser(req, res, next);
       const body = res._getJSONData();
       expect(Object.keys(body)).toEqual([
@@ -365,6 +423,7 @@ describe('User Controller', () => {
         'technicalKnowledge',
         'cvLink',
         'role',
+        'roleId',
       ]);
       expect(typeof body.role).toBe('string');
       expect(body).not.toHaveProperty('password');
@@ -512,7 +571,7 @@ describe('User Controller', () => {
       expect(email).toBe(resolvedUser.email);
     });
 
-    it('should return the user id, name, email, englishLevel, technicalKnowledge, cvLink and role in the response body', async () => {
+    it('should return the user id, name, email, englishLevel, technicalKnowledge, cvLink, role and roleId in the response body', async () => {
       await sut.updateUser(req, res, next);
       const body = res._getJSONData();
       expect(Object.keys(body)).toEqual([
@@ -523,6 +582,7 @@ describe('User Controller', () => {
         'technicalKnowledge',
         'cvLink',
         'role',
+        'roleId',
       ]);
       expect(body).not.toHaveProperty('password');
     });

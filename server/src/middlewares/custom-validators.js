@@ -13,8 +13,8 @@ class CustomValidator {
 
   name(validate = this.validateOn) {
     return CustomValidator.notEmptyWithMessage(
-      validate('name'),
-      'Name cannot be null'
+      validate('name').trim(),
+      'Name cannot be empty'
     )
       .isAlpha('en-US', { ignore: / | ./g })
       .withMessage('Name cannot contain numbers or special characters just .')
@@ -42,8 +42,8 @@ class CustomValidator {
 
   password(validate = this.validateOn) {
     return CustomValidator.notEmptyWithMessage(
-      validate('password'),
-      'Password cannot be null'
+      validate('password').trim(),
+      'Password cannot be empty'
     )
       .isLength({ min: 8 })
       .withMessage('Password must have at least 8 characters')
@@ -55,8 +55,8 @@ class CustomValidator {
   }
   email(validate = this.validateOn) {
     return CustomValidator.notEmptyWithMessage(
-      validate('email'),
-      'Email cannot be null'
+      validate('email').trim(),
+      'Email cannot be empty'
     )
       .isEmail()
       .withMessage('Email format is wrong');
@@ -64,8 +64,8 @@ class CustomValidator {
 
   role(validate = this.validateOn) {
     return CustomValidator.notEmptyWithMessage(
-      validate('roleId'),
-      'Role cannot be null'
+      validate('roleId').trim(),
+      'Role cannot be empty'
     )
       .isNumeric()
       .isInt({ gt: 0 })
@@ -74,8 +74,8 @@ class CustomValidator {
 
   technicalKnowledge(validate = this.validateOn) {
     return CustomValidator.notEmptyWithMessage(
-      validate('technicalKnowledge'),
-      'Technical Knowledge cannot be null'
+      validate('technicalKnowledge').trim(),
+      'Technical Knowledge cannot be empty'
     )
       .not()
       .isBoolean()
@@ -85,8 +85,8 @@ class CustomValidator {
 
   responsibleName(validate = this.validateOn) {
     return CustomValidator.notEmptyWithMessage(
-      validate('responsibleName'),
-      'Responsible Name cannot be null'
+      validate('responsibleName').trim(),
+      'Responsible Name cannot be empty'
     )
       .isAlpha('en-US', { ignore: / | ./g })
       .withMessage(
@@ -100,8 +100,8 @@ class CustomValidator {
 
   accountName(validate = this.validateOn) {
     return CustomValidator.notEmptyWithMessage(
-      validate('name'),
-      'Name cannot be null'
+      validate('name').trim(),
+      'Name cannot be empty'
     )
       .not()
       .isBoolean()
@@ -110,8 +110,8 @@ class CustomValidator {
 
   clientName(validate = this.validateOn) {
     return CustomValidator.notEmptyWithMessage(
-      validate('clientName'),
-      'Client Name cannot be null'
+      validate('clientName').trim(),
+      'Client Name cannot be empty'
     )
       .not()
       .isBoolean()
@@ -121,7 +121,7 @@ class CustomValidator {
   accountId(validate = this.validateOn) {
     return CustomValidator.notEmptyWithMessage(
       validate('accountId'),
-      'Account ID cannot be null'
+      'Account ID cannot be empty'
     )
       .isInt()
       .withMessage('Account ID must be an integer')

@@ -6,10 +6,10 @@ const useRole = async (name) => {
   return existingRole ? existingRole : await Role.create({ name });
 };
 
-exports.createUsers = async (quantity) => {
-  const role = await useRole('Normal');
+exports.createUsers = async (quantity, roleName = 'Normal', start = 0) => {
+  const role = await useRole(roleName);
   const users = [];
-  for (let i = 0; i < quantity; i += 1) {
+  for (let i = 0 + start; i < quantity + start; i += 1) {
     const number = i + 1;
     users.push({
       name: `User ${number}`,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../services';
 
 export function useProvideAuth() {
   const [user, setUser] = useState(null);
@@ -7,8 +7,13 @@ export function useProvideAuth() {
 
   useEffect(() => {
     const userInStorage = localStorage.getItem('user');
+
     if (userInStorage) {
-      return setUser(userInStorage);
+      try {
+        return setUser(JSON.parse(userInStorage));
+      } catch {
+        return setUser(null);
+      }
     }
     setUser(null);
   }, []);
@@ -16,7 +21,7 @@ export function useProvideAuth() {
   const singIn = async (email, password) => {
     setAuthError(null);
     try {
-      const { data: user } = await axios.post('api/v1/users/auth', {
+      const { data: user } = await api.post('/api/v1/users/auth', {
         email,
         password,
       });

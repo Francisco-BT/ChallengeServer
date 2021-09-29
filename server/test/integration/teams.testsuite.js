@@ -55,7 +55,7 @@ module.exports = (agent) => {
       const response = await postTeam(null, '', token);
       expect(response.status).toBe(400);
       expect(response.body.errors).toEqual(
-        expect.objectContaining({ accountId: 'Account ID cannot be null' }),
+        expect.objectContaining({ accountId: 'Account ID cannot be empty' }),
         expect.objectContaining({
           members: 'Members must be an array of user IDs',
         })
@@ -212,7 +212,7 @@ module.exports = (agent) => {
       expect(response.body.items).toHaveLength(1);
     });
 
-    it('should return filtered data by startDate', async () => {
+    it('should return filtered data by startDate and endDate', async () => {
       await createTeams();
       const today = new Date();
       const dayInMs = 60 * 60 * 24 * 1000;
@@ -223,7 +223,7 @@ module.exports = (agent) => {
         token
       );
       expect(response.status).toBe(200);
-      expect(response.body.items).toHaveLength(6);
+      expect(response.body.items).toHaveLength(0);
     });
 
     it('should response empty data if startDate is in the future', async () => {

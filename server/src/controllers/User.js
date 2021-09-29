@@ -8,7 +8,12 @@ const {
   ForbiddenException,
   ConflictException,
 } = require('../utils/errors');
-const { getTokenFromHeaders, pickValue } = require('../utils');
+const {
+  getTokenFromHeaders,
+  pickValue,
+  buildPagination,
+  paginationBoundaries,
+} = require('../utils');
 
 class UserController extends BaseController {
   constructor(model, RoleModel, TokenModel) {
@@ -45,10 +50,22 @@ class UserController extends BaseController {
     }
   }
 
-  async getAll(_, res, next) {
+  async getAll(req, res, next) {
     try {
-      const users = await this._sequelizeModel.findAll();
-      res.status(200).json(users.map((user) => UserController.parseUser(user)));
+      const { page, limit, offset } = paginationBoundaries({
+        page: req.query.page,
+        limit: req.query.limit,
+      });
+      const { count, rows } = await this._sequelizeModel.findAndCountAll({
+        limit,
+        offset,
+        include: 'role',
+        order: [['id', 'ASC']],
+      });
+      res.status(200).json({
+        items: rows.map((user) => UserController.parseUser(user, user.role)),
+        pagination: buildPagination({ totalItems: count, limit, page }),
+      });
     } catch {
       next(new APIException());
     }
@@ -161,6 +178,7 @@ class UserController extends BaseController {
       technicalKnowledge: user.technicalKnowledge,
       cvLink: user.cvLink,
       role: role ? role.name : undefined,
+      roleId: role ? role.id : undefined,
     };
   }
 

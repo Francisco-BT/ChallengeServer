@@ -3,9 +3,13 @@ const { PORT, SUPER_ADMIN_PASSWORD } = require('./server/src/config');
 const { sequelize } = require('./server/src/services');
 const { Role, User } = require('./server/src/models');
 const { encrypt } = require('./server/src/utils');
+const {
+  createUsers,
+  createAccounts,
+} = require('./server/test/integration/utils');
 
 // TODO: replace this logic by sequelize's seeds and migrations
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV === 'test') {
   (async () => {
     try {
       await sequelize.sync({ force: true });
@@ -27,6 +31,9 @@ if (process.env.NODE_ENV !== 'test') {
         password: await encrypt(SUPER_ADMIN_PASSWORD),
         roleId: roles[0].id,
       });
+      await createUsers(8);
+      await createUsers(5, 'Admin', 8);
+      await createAccounts(7);
       // console.log('USERS: ', await User.findAll());
       // console.log('ROLES: ', await Role.findAll());
     } catch (error) {
