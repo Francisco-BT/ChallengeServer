@@ -1,12 +1,10 @@
-import axios from 'axios';
-import { useCallback, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Form } from 'react-bootstrap';
 
 import Modal from '../modal';
 import ValidationError from '../ValidationError';
 import { DisableInput, DisableSelect } from '../inputs';
-import { api } from '../../services';
-import { useRoles } from '../../hooks';
+import { useRoles, useSaveUser } from '../../hooks';
 
 const englishLevel = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const closeLabel = 'Close';
@@ -17,10 +15,11 @@ const userInitialState = Object.freeze({
   email: '',
   password: '',
   roleId: '',
-  englishLevel: undefined,
-  cvLink: undefined,
-  technicalKnowledge: undefined,
+  englishLevel: '',
+  cvLink: '',
+  technicalKnowledge: '',
 });
+
 export default function UserModal({
   open,
   editing,
@@ -28,61 +27,40 @@ export default function UserModal({
   userData,
   onClose,
   onAction,
+  showToast,
 }) {
   const isNewUser = !editing && !viewing;
   const { roles } = useRoles();
   const title = editing || viewing ? `User: ${userData.name}` : 'New User';
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(userInitialState);
+  const { errors, loading, saveUser } = useSaveUser(
+    editing,
+    user,
+    userData ? userData.id : undefined,
+    () => {
+      onClose();
+      showToast(
+        editing ? 'User updated successfully' : 'User created successfully',
+        'success'
+      );
+      onAction();
+    },
+    (message) => {
+      showToast(message, 'error');
+    }
+  );
 
   useEffect(() => {
     if (userData) {
       setUser({
         ...userData,
-        roleId: userData.roleId,
+        englishLevel: userData.englishLevel || '',
+        roleId: userData.roleId || '',
       });
     } else {
       setUser(userInitialState);
     }
   }, [userData]);
-
-  const saveUser = useCallback(async () => {
-    let request;
-    const source = axios.CancelToken.source();
-    setLoading(true);
-    setErrors({});
-
-    const data = {
-      ...user,
-      cvLink: user.cvLink ? user.cvLink : undefined,
-      englishLevel: user.englishLevel ? user.englishLevel : undefined,
-      technicalKnowledge: user.technicalKnowledge
-        ? user.technicalKnowledge
-        : undefined,
-    };
-
-    if (editing) {
-      request = api.put(`/api/v1/users/${userData.id}`, data, {
-        cancelToken: source.token,
-      });
-    } else {
-      request = api.post('/api/v1/users', data, { cancelToken: source.token });
-    }
-    try {
-      await request;
-      onClose();
-      onAction();
-    } catch (error) {
-      if (error.response && error.response.data) {
-        setErrors(error.response.data.errors);
-      } else {
-        setErrors({ message: 'Something went wrong, please try again.' });
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [editing, user, userData, onClose, onAction]);
 
   return (
     <Modal
@@ -93,6 +71,7 @@ export default function UserModal({
       onClose={onClose}
       onAction={saveUser}
       loading={loading}
+      hideActionButton={viewing}
     >
       <Form>
         <Form.Group className="mb-3" controlId="formUserName">
@@ -126,7 +105,7 @@ export default function UserModal({
         {isNewUser ? (
           <Form.Group className="mb-3" controlId="formUserPassword">
             <Form.Label>Password</Form.Label>
-            <Form.Control
+            <DisableInput
               type="password"
               placeholder="Password"
               value={user.password}
@@ -148,14 +127,14 @@ export default function UserModal({
               setUser((user) => ({ ...user, roleId: e.target.value }))
             }
           >
-            <option>Select the role for the user</option>
+            <option value={''}>Select the role for the user</option>
             {roles.map((role) => (
               <option value={role.id} key={role.id}>
                 {role.name}
               </option>
             ))}
           </DisableSelect>
-          <ValidationError error={errors['englishLevel']} />
+          <ValidationError error={errors['roleId']} />
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="formUserEnglishLevel">
@@ -168,7 +147,7 @@ export default function UserModal({
               setUser((user) => ({ ...user, englishLevel: e.target.value }))
             }
           >
-            <option>What is your english level?</option>
+            <option value={''}>What is your english level?</option>
             {englishLevel.map((level) => (
               <option value={level} key={level}>
                 {level}

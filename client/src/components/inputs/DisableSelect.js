@@ -6,6 +6,7 @@ export default function DisableSelect({ children, disabled, ...props }) {
       {...props}
       readOnly={disabled}
       disabled={disabled}
+      value={props.value || ''}
       onChange={disabled ? null : props.onChange}
     >
       {children}

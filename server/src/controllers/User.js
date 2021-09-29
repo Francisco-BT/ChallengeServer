@@ -60,6 +60,7 @@ class UserController extends BaseController {
         limit,
         offset,
         include: 'role',
+        order: [['createdAt', 'ASC']],
       });
       res.status(200).json({
         items: rows.map((user) => UserController.parseUser(user, user.role)),

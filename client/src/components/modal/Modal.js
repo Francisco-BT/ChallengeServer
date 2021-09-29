@@ -28,7 +28,7 @@ export default function MyModal({
         <Button variant="secondary" onClick={onClose} disabled={loading}>
           {closeLabel}
         </Button>
-        {hideActionButton ? (
+        {!hideActionButton ? (
           <Button variant="primary" onClick={onAction} disabled={loading}>
             {actionLabel}
           </Button>
