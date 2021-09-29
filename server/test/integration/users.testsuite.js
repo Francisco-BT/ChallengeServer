@@ -67,6 +67,7 @@ const userTestsSuite = (agent) => {
           'technicalKnowledge',
           'cvLink',
           'role',
+          'roleId',
         ]);
       });
 
@@ -144,11 +145,12 @@ const userTestsSuite = (agent) => {
       it('should returns users with at least id, name, email, role', async () => {
         await createUsers(1, 'TestGetAll');
         const response = await requestUsers();
-        const user = response.body.items[0];
+        const user = response.body.items[1];
         expect(user).toHaveProperty('id');
         expect(user).toHaveProperty('name');
         expect(user).toHaveProperty('email');
-        // expect(user).toHaveProperty('role');
+        expect(user).toHaveProperty('role');
+        expect(user.role).toBe('TestGetAll');
         expect(user).not.toHaveProperty('createdAt');
         expect(user).not.toHaveProperty('password');
       });

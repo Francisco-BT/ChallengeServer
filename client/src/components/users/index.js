@@ -8,16 +8,17 @@ import UserModal from './UserModal';
 import Table, { TableHead, TableBody, ActionsColumn } from '../table';
 import { useUsers, useAuth } from '../../hooks';
 
+const formPropsInitialState = {
+  open: false,
+  viewing: false,
+  editing: false,
+  userData: null,
+};
 export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [fetchData, setFetchData] = useState(true);
-  const [modalProps, setModalProps] = useState({
-    title: 'New User',
-    open: false,
-    viewing: false,
-    editing: false,
-  });
+  const [modalProps, setModalProps] = useState(formPropsInitialState);
   const triggerDataFetch = () => setFetchData((fetchData) => !fetchData);
   const { users, pagination, error, loading } = useUsers(
     page,
@@ -56,7 +57,9 @@ export default function UsersPage() {
             backgroundColor: '#ce0002',
             borderColor: '#ce0002',
           }}
-          onClick={() => setModalProps((state) => ({ ...state, open: true }))}
+          onClick={() =>
+            setModalProps({ ...formPropsInitialState, open: true })
+          }
         >
           <FontAwesomeIcon icon={faPlus} />
         </Button>
@@ -80,7 +83,16 @@ export default function UsersPage() {
               <td>{user.id}</td>
               <td>{user.name}</td>
               <td>{user.email}</td>
-              <ActionsColumn />
+              <ActionsColumn
+                onSee={() =>
+                  setModalProps((props) => ({
+                    ...props,
+                    open: true,
+                    viewing: true,
+                    userData: user,
+                  }))
+                }
+              />
             </tr>
           )}
         />

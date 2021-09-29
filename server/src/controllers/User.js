@@ -59,9 +59,10 @@ class UserController extends BaseController {
       const { count, rows } = await this._sequelizeModel.findAndCountAll({
         limit,
         offset,
+        include: 'role',
       });
       res.status(200).json({
-        items: rows.map((user) => UserController.parseUser(user)),
+        items: rows.map((user) => UserController.parseUser(user, user.role)),
         pagination: buildPagination({ totalItems: count, limit, page }),
       });
     } catch {
@@ -176,6 +177,7 @@ class UserController extends BaseController {
       technicalKnowledge: user.technicalKnowledge,
       cvLink: user.cvLink,
       role: role ? role.name : undefined,
+      roleId: role ? role.id : undefined,
     };
   }
 

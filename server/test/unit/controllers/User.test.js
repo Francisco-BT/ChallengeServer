@@ -52,6 +52,10 @@ describe('User Controller', () => {
             englishLevel: null,
             technicalKnowledge: null,
             cvLink: null,
+            role: {
+              id: 1,
+              name: 'Role Test 1',
+            },
           },
           {
             id: 2,
@@ -60,6 +64,10 @@ describe('User Controller', () => {
             englishLevel: 'A2',
             technicalKnowledge: null,
             cvLink: 'www.google.com',
+            role: {
+              id: 2,
+              name: 'Role Test 2',
+            },
           },
         ],
         count: 2,
@@ -204,12 +212,13 @@ describe('User Controller', () => {
       expect(mockUserModel.findAndCountAll).toHaveBeenCalled();
     });
 
-    it('should call User.findAndCountAll using offset and limit', async () => {
+    it('should call User.findAndCountAll using offset, limit and include Role model', async () => {
       req.query = { page: 1, limit: 10 };
       await sut.getAll(req, res, next);
       expect(mockUserModel.findAndCountAll).toHaveBeenCalledWith({
         offset: 0,
         limit: 10,
+        include: 'role',
       });
     });
 
@@ -247,7 +256,7 @@ describe('User Controller', () => {
       expect(body.items.length).toBe(2);
     });
 
-    it('should return id, name, email, englishLevel, technicalKnowledge, cvLink per user', async () => {
+    it('should return id, name, email, englishLevel, technicalKnowledge, cvLink, role and roleId per user', async () => {
       await sut.getAll(req, res, {});
       const body = res._getJSONData().items;
       const returnedFields = [
@@ -257,6 +266,8 @@ describe('User Controller', () => {
         'englishLevel',
         'technicalKnowledge',
         'cvLink',
+        'role',
+        'roleId',
       ];
       expect(Object.keys(body[0])).toEqual(returnedFields);
       expect(Object.keys(body[1])).toEqual(returnedFields);
@@ -400,7 +411,7 @@ describe('User Controller', () => {
       expect(res._isEndCalled()).toBeTruthy();
     });
 
-    it('should return a user id, name, email, englishLevel, technicalKnowledge, cvLink and role in the response body', async () => {
+    it('should return a user id, name, email, englishLevel, technicalKnowledge, cvLink, role and roleId in the response body', async () => {
       await sut.getUser(req, res, next);
       const body = res._getJSONData();
       expect(Object.keys(body)).toEqual([
@@ -411,6 +422,7 @@ describe('User Controller', () => {
         'technicalKnowledge',
         'cvLink',
         'role',
+        'roleId',
       ]);
       expect(typeof body.role).toBe('string');
       expect(body).not.toHaveProperty('password');
@@ -558,7 +570,7 @@ describe('User Controller', () => {
       expect(email).toBe(resolvedUser.email);
     });
 
-    it('should return the user id, name, email, englishLevel, technicalKnowledge, cvLink and role in the response body', async () => {
+    it('should return the user id, name, email, englishLevel, technicalKnowledge, cvLink, role and roleId in the response body', async () => {
       await sut.updateUser(req, res, next);
       const body = res._getJSONData();
       expect(Object.keys(body)).toEqual([
@@ -569,6 +581,7 @@ describe('User Controller', () => {
         'technicalKnowledge',
         'cvLink',
         'role',
+        'roleId',
       ]);
       expect(body).not.toHaveProperty('password');
     });

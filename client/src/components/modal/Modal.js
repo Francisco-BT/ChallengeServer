@@ -9,6 +9,7 @@ export default function MyModal({
   onClose,
   onAction,
   loading,
+  hideActionButton,
 }) {
   return (
     <Modal
@@ -27,9 +28,11 @@ export default function MyModal({
         <Button variant="secondary" onClick={onClose} disabled={loading}>
           {closeLabel}
         </Button>
-        <Button variant="primary" onClick={onAction} disabled={loading}>
-          {actionLabel}
-        </Button>
+        {hideActionButton ? (
+          <Button variant="primary" onClick={onAction} disabled={loading}>
+            {actionLabel}
+          </Button>
+        ) : null}
       </Modal.Footer>
     </Modal>
   );

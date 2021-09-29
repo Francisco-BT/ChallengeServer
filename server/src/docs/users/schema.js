@@ -41,7 +41,10 @@ module.exports = {
       role: {
         type: 'string',
         description: 'The role of the user',
-        nullable: true,
+      },
+      roleId: {
+        type: 'integer',
+        description: 'The numeric representation of the role',
       },
     },
   },

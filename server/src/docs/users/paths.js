@@ -192,7 +192,7 @@ module.exports = {
           description: 'The user was deleted successfully',
           content: {
             'application/json': {
-              schema: { ref: '#/components/schemas/User' },
+              schema: { $ref: '#/components/schemas/User' },
             },
           },
         },
