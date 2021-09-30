@@ -11,7 +11,8 @@ export default function HomePage() {
 
   if (error) {
     if (error.logOut) {
-      logOut();
+      logOut(true);
+      return null;
     }
 
     return <div>Fatal error: {JSON.stringify(error, null, 2)}</div>;

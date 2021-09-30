@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
+
 import { api } from '../services';
 
 export function useProvideAuth() {
@@ -33,7 +35,14 @@ export function useProvideAuth() {
     return user;
   };
 
-  const logOut = () => {
+  const logOut = (sessionExpired = false) => {
+    if (sessionExpired) {
+      toast('Your session has expired. Please log in again.', {
+        type: 'info',
+        theme: 'colored',
+        toastId: -1,
+      });
+    }
     setUser(null);
     localStorage.removeItem('user');
   };

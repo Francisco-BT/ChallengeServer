@@ -24,7 +24,8 @@ export default function AccountsTable({ logOut, showToast }) {
 
   if (error) {
     if (error.logOut) {
-      logOut();
+      logOut(true);
+      return null;
     }
   }
 
@@ -56,7 +57,6 @@ export default function AccountsTable({ logOut, showToast }) {
               <td>{account.name}</td>
               <td>{account.clientName}</td>
               <td>{account.responsibleName}</td>
-              <ActionsColumn />
             </tr>
           )}
         />
