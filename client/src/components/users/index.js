@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Container } from 'react-bootstrap';
 
 import LoaderIndicator from '../loader-indicator';
 import Table, {
@@ -32,7 +33,7 @@ export default function UsersTable() {
   }
 
   return (
-    <>
+    <Container style={{ marginTop: '30px' }}>
       <TableTitle
         title="Users"
         onClick={() => setModalProps({ ...modalPropsInitialState, open: true })}
@@ -81,6 +82,6 @@ export default function UsersTable() {
           )}
         />
       </Table>
-    </>
+    </Container>
   );
 }

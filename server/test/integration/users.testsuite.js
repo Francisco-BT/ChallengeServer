@@ -374,7 +374,7 @@ const userTestsSuite = (agent) => {
         expect(response.body.technicalKnowledge).toBe('Updated TK');
       });
 
-      it('should respone 400 if no data is sending', async () => {
+      it('should response 400 if no data is sending', async () => {
         const response = await putUSerRequest(1);
         expect(response.status).toBe(400);
         expect(response.body.errors).toEqual(
@@ -398,6 +398,15 @@ const userTestsSuite = (agent) => {
         const response = await putUSerRequest(0, { englishLevel: 'B2' });
         expect(response.status).toBe(400);
         expect(response.body.message).toBe('Invalid Request');
+      });
+
+      it('should return 422 if the user has not change', async () => {
+        const user = (await createUsers(1))[0];
+        const response = await putUSerRequest(user.id, {
+          ...user,
+        });
+        expect(response.status).toBe(422);
+        expect(response.body.message).toBe('The data has not change');
       });
     });
   });

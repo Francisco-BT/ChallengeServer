@@ -1,9 +1,9 @@
 import { Navbar, Container, Nav } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 
 import { useAuth } from '../../hooks';
 
-export default function NavBar() {
+export function NavBar({ history }) {
   const { user, logOut } = useAuth();
   return (
     <>
@@ -27,10 +27,14 @@ export default function NavBar() {
             </Link>
           </Nav>
           <Nav>
-            <Nav.Link onClick={logOut}>Log Out</Nav.Link>
+            <Nav.Link onClick={() => logOut(false, history.push('/'))}>
+              Log Out
+            </Nav.Link>
           </Nav>
         </Container>
       </Navbar>
     </>
   );
 }
+
+export default withRouter(NavBar);

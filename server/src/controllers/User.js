@@ -22,6 +22,17 @@ class UserController extends BaseController {
     this.TokenModel = TokenModel;
   }
 
+  static hasUserChange(newValues, oldValues) {
+    return (
+      String(newValues.name) !== String(oldValues.name) &&
+      String(newValues.cvLink || '') !== String(oldValues.cvLink || '') &&
+      String(newValues.englishLevel || '') !==
+        String(oldValues.englishLevel || '') &&
+      String(newValues.technicalKnowledge || '') !==
+        String(oldValues.technicalKnowledge || '')
+    );
+  }
+
   async create(req, res, next) {
     const { roleId, password, email } = req.body;
     try {
@@ -138,6 +149,9 @@ class UserController extends BaseController {
 
       const user = await this.findUserById(id, { include: 'role' });
       if (user) {
+        if (!UserController.hasUserChange(req.body, user)) {
+          return next(new APIException('The data has not change', 422));
+        }
         user.name = pickValue(name, user.name);
         user.englishLevel = pickValue(englishLevel, user.englishLevel);
         user.cvLink = pickValue(cvLink, user.cvLink);

@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 
 import { api } from '../services';
 import { requestHandler } from '../utils';
-import { usePaginationRequest, useSessionExpired } from '.';
+import { usePaginationRequest, useSessionExpired, useToast } from '.';
 
 export function useUsers(page, limit, fetchData) {
   const { items, pagination, loading, error } = usePaginationRequest(
@@ -20,17 +20,17 @@ export function useUsers(page, limit, fetchData) {
   };
 }
 
-export function useSaveUser(editing, user, id, onSuccess, onError) {
+export function useSaveUser(editing, user, id, onSuccess) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const sessionExpired = useSessionExpired();
-
+  const { errorToast, successToast } = useToast();
   const saveUser = async () => {
     const { request } = requestHandler({
       setLoading,
       setErrors,
       sessionExpired,
-      onError,
+      onError: errorToast,
       apiCall: async (_, cancelToken) => {
         let request;
         const data = {
@@ -53,6 +53,11 @@ export function useSaveUser(editing, user, id, onSuccess, onError) {
         }
 
         await request;
+        successToast(
+          editing
+            ? 'User was updated successfully'
+            : 'User was created successfully'
+        );
         onSuccess();
       },
     });
@@ -63,25 +68,28 @@ export function useSaveUser(editing, user, id, onSuccess, onError) {
     errors,
     loading,
     saveUser,
+    clear: useCallback(() => setErrors({}), []),
   };
 }
 
-export function useDeleteUser({ onSuccess, onError }) {
+export function useDeleteUser({ onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(null);
   const sessionExpired = useSessionExpired();
+  const { errorToast, successToast } = useToast();
 
   const deleteUser = async (id, name) => {
     const { request } = requestHandler({
       setLoading,
       setErrors,
       sessionExpired,
-      onError,
+      onError: errorToast,
       apiCall: async (_, cancelToken) => {
         await api.delete(`/api/v1/users/${id}`, {
           cancelToken,
         });
-        onSuccess(name);
+        successToast(`User ${name} has been deleted`);
+        onSuccess();
         return true;
       },
     });

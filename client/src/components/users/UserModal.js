@@ -25,26 +25,18 @@ export default function UserModal({
   userData,
   onClose,
   onAction,
-  showToast,
 }) {
   const isNewUser = !editing && !viewing;
   const { roles } = useRoles();
   const title = editing || viewing ? `User: ${userData.name}` : 'New User';
   const [user, setUser] = useState(userInitialState);
-  const { errors, loading, saveUser } = useSaveUser(
+  const { errors, loading, saveUser, clear } = useSaveUser(
     editing,
     user,
     userData ? userData.id : undefined,
     () => {
       onClose();
-      showToast(
-        editing ? 'User updated successfully' : 'User created successfully',
-        'success'
-      );
       onAction();
-    },
-    (message) => {
-      showToast(message, 'error');
     }
   );
 
@@ -58,7 +50,8 @@ export default function UserModal({
     } else {
       setUser(userInitialState);
     }
-  }, [userData]);
+    clear();
+  }, [userData, clear]);
 
   return (
     <Modal
@@ -87,7 +80,7 @@ export default function UserModal({
         <Form.Group className="mb-3" controlId="formUserEmail">
           <Form.Label>Email</Form.Label>
           <DisableInput
-            disabled={viewing}
+            disabled={!isNewUser}
             type="email"
             placeholder="Enter email"
             value={user.email}

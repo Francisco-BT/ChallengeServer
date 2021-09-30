@@ -1,17 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Form } from 'react-bootstrap';
+import { useHistory, useLocation } from 'react-router';
 
 import { useAuth } from '../../hooks';
 
 export default function LogInPage() {
-  const { singIn, authError } = useAuth();
+  const history = useHistory();
+  const location = useLocation();
+  const { singIn, authError, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    singIn(email, password);
+    singIn(email, password, history.replace('/'));
   };
+
+  useEffect(() => {
+    if (user) {
+      let { from } = location.state || { from: { pathname: '/' } };
+      history.replace(from);
+    }
+  }, [user, history, location.state]);
 
   return (
     <div

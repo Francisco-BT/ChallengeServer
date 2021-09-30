@@ -12,22 +12,12 @@ const newAccountInitialState = Object.freeze({
   responsibleName: '',
 });
 
-export default function NewAccountModal({
-  open,
-  onClose,
-  onAction,
-  showToast,
-}) {
+export default function NewAccountModal({ open, onClose, onAction }) {
   const [account, setAccount] = useState(newAccountInitialState);
-  const { loading, errors, createAccount } = useCreateAccount(
-    account,
-    () => {
-      onClose();
-      showToast('Account successfully created', 'success');
-      onAction();
-    },
-    (message) => showToast(message, 'error')
-  );
+  const { loading, errors, createAccount } = useCreateAccount(account, () => {
+    onClose();
+    onAction();
+  });
 
   return (
     <Modal

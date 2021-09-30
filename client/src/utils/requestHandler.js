@@ -31,6 +31,7 @@ export function requestHandler({
         }
       }
 
+      onError(message);
       !unmounted && setErrors({ message });
       return false;
     } finally {

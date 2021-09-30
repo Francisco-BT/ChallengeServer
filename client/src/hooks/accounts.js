@@ -1,9 +1,9 @@
-import axios from 'axios';
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
 import { api } from '../services';
 import { usePaginationRequest, useSessionExpired } from '.';
 import { requestHandler } from '../utils';
+import { useToast } from './useToast';
 
 export function useAccounts(page, limit, fetchData) {
   const { items, pagination, loading, error } = usePaginationRequest(
@@ -25,17 +25,19 @@ export function useCreateAccount(account, onSuccess, onError) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const sessionExpired = useSessionExpired();
+  const { errorToast, successToast } = useToast();
 
   const createAccount = async () => {
     const { request } = requestHandler({
       setLoading,
       setErrors,
       sessionExpired,
-      onError,
+      onError: errorToast,
       apiCall: async (_, cancelToken) => {
         await api.post('/api/v1/accounts', account, {
           cancelToken,
         });
+        successToast('Account successfully created');
         onSuccess();
       },
     });
