@@ -7,8 +7,6 @@ import { DisableInput, DisableSelect } from '../inputs';
 import { useRoles, useSaveUser } from '../../hooks';
 
 const englishLevel = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-const closeLabel = 'Close';
-const actionLabel = 'Save';
 
 const userInitialState = Object.freeze({
   name: '',
@@ -66,8 +64,6 @@ export default function UserModal({
     <Modal
       open={open}
       title={title}
-      closeLabel={closeLabel}
-      actionLabel={actionLabel}
       onClose={onClose}
       onAction={saveUser}
       loading={loading}

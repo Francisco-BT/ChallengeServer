@@ -3,7 +3,7 @@ import { Form } from 'react-bootstrap';
 export default function LimitSelector({
   options = [10, 20, 30],
   currentLimit = options[0],
-  onLimitChange = (_limit) => {},
+  onLimitChange = (_) => {},
 }) {
   return (
     <Form.Select

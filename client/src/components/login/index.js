@@ -3,7 +3,7 @@ import { Button, Form } from 'react-bootstrap';
 
 import { useAuth } from '../../hooks';
 
-export default function LogInPage({ history }) {
+export default function LogInPage() {
   const { singIn, authError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(null);

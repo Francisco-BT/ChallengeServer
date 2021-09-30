@@ -17,7 +17,7 @@ export default function CustomTable({
         {children}
       </Table>
       <Row>
-        <Col sm={12} md={3} style={{ marginBottom: '20px' }}>
+        <Col sm={12} md={4} style={{ marginBottom: '20px' }}>
           <LimitSelector
             options={limitOptions}
             onLimitChange={onLimitChange}
