@@ -4,7 +4,7 @@ import { api } from '../services';
 import { useSessionExpired } from './useSessionExpired';
 import { requestHandler } from '../utils';
 
-export function usePaginationRequest(url, page, limit, fetch) {
+export function usePaginationRequest(url, page, limit, fetch, query) {
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({});
   const [errors, setErrors] = useState(null);
@@ -19,7 +19,7 @@ export function usePaginationRequest(url, page, limit, fetch) {
       apiCall: async (unmounted, cancelToken) => {
         const { data } = await api.get(url, {
           cancelToken,
-          params: { page, limit },
+          params: { ...query, page, limit },
         });
         if (!unmounted) {
           setItems(data.items ? data.items : data);
@@ -30,7 +30,7 @@ export function usePaginationRequest(url, page, limit, fetch) {
     request();
 
     return cleanUp;
-  }, [page, limit, url, fetch, sessionExpired]);
+  }, [page, limit, url, fetch, sessionExpired, query]);
 
   return {
     items,

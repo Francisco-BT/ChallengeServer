@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { createResponse, createRequest } = require('node-mocks-http');
 const { UserController } = require('../../../src/controllers');
 const { encrypt } = require('../../../src/utils');
@@ -203,6 +204,10 @@ describe('User Controller', () => {
   });
 
   describe('Get All Users', () => {
+    beforeEach(() => {
+      req.query = {};
+    });
+
     it('should have a getAll function', () => {
       expect(typeof sut.getAll).toBe('function');
     });
@@ -220,6 +225,7 @@ describe('User Controller', () => {
         limit: 10,
         include: 'role',
         order: [['id', 'ASC']],
+        where: {},
       });
     });
 
@@ -296,6 +302,47 @@ describe('User Controller', () => {
           'hasPrevious',
           'total',
         ])
+      );
+    });
+
+    it('should allow users to be filtered by email if is provided using like operator', async () => {
+      req.query = { email: 'user' };
+      await sut.getAll(req, res, next);
+      expect(mockUserModel.findAndCountAll).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { email: { [Op.like]: 'user%' } } })
+      );
+    });
+
+    it('should call where using an array of ids to filter users', async () => {
+      req.query = { ids: [1, 2] };
+      await sut.getAll(req, res, next);
+      expect(mockUserModel.findAndCountAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            id: { [Op.notIn]: [1, 2] },
+          },
+        })
+      );
+    });
+
+    it('should not filter by id if ids in req.query is not an array', async () => {
+      req.query.ids = 1;
+      await sut.getAll(req, res, next);
+      expect(mockUserModel.findAndCountAll).toHaveBeenCalledWith(
+        expect.objectContaining({ where: {} })
+      );
+    });
+
+    it('should combine email and ids filters if both are provided', async () => {
+      req.query = { email: 'e', ids: [1] };
+      await sut.getAll(req, res, next);
+      expect(mockUserModel.findAndCountAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            email: { [Op.like]: 'e%' },
+            id: { [Op.notIn]: [1] },
+          },
+        })
       );
     });
   });

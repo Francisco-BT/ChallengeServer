@@ -4,12 +4,13 @@ import { api } from '../services';
 import { requestHandler } from '../utils';
 import { usePaginationRequest, useSessionExpired, useToast } from '.';
 
-export function useUsers(page, limit, fetchData) {
+export function useUsers(page, limit, fetchData, query) {
   const { items, pagination, loading, error } = usePaginationRequest(
     '/api/v1/users',
     page,
     limit,
-    fetchData
+    fetchData,
+    query
   );
 
   return {

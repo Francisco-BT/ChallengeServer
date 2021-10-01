@@ -1,4 +1,4 @@
-const { getAuthToken, createAccounts } = require('./utils');
+const { getAuthToken, createAccounts, createTeam } = require('./utils');
 
 module.exports = (agent) => {
   let token;
@@ -160,42 +160,51 @@ module.exports = (agent) => {
   });
 
   describe('GET - /api/v1/accounts/:id', () => {
-    const getUser = async (id, token) => {
+    const getAccount = async (id, token) => {
       return await agent
         .get(`/api/v1/accounts/${id}`)
         .auth(token, { type: 'bearer' });
     };
 
     it('should response 401 if there is no token', async () => {
-      const response = await getUser(100, '');
+      const response = await getAccount(100, '');
       expect(response.status).toBe(401);
     });
 
     it('should response 403 if the token has Normal role', async () => {
       const normalRoleToken = await getAuthToken(agent, 'Normal');
-      const response = await getUser(1, normalRoleToken);
+      const response = await getAccount(1, normalRoleToken);
       expect(response.status).toBe(403);
     });
 
     it('should response 400 if the account not exist', async () => {
-      const response = await getUser(0, token);
+      const response = await getAccount(0, token);
       expect(response.status).toBe(400);
     });
 
     it('should response 200 if the account exist', async () => {
       const account = (await createAccounts(1))[0];
-      const response = await getUser(account.id, token);
+      const response = await getAccount(account.id, token);
       expect(response.status).toBe(200);
     });
 
     it('should return the account data in the response.body', async () => {
       const account = (await createAccounts(1))[0];
-      const response = await getUser(account.id, token);
+      const response = await getAccount(account.id, token);
       expect(response.body.id).toBe(account.id);
       expect(response.body.name).toBe(account.name);
       expect(response.body.clientName).toBe(account.clientName);
       expect(response.body.responsibleName).toBe(account.responsibleName);
       expect(response.body).not.toHaveProperty('createdAt');
+    });
+
+    it('should return the team assigned to the account', async () => {
+      const { accountId } = await createTeam();
+      const response = await getAccount(accountId, token);
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('team');
+      expect(Array.isArray(response.body.team)).toBeTruthy();
+      expect(response.body.team.length).toBeGreaterThan(0);
     });
   });
 

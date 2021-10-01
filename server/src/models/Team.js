@@ -50,7 +50,7 @@ Team.afterDestroy('logTeamMemberDelete', async (teamMember) => {
 
 Account.belongsToMany(User, {
   through: Team,
-  as: 'accountId',
+  as: 'team',
   onDelete: 'CASCADE',
 });
 User.belongsToMany(Account, {

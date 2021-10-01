@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const BaseController = require('./BaseController');
 const { encrypt, compareEncrypted, generateToken } = require('../utils');
 const {
@@ -62,16 +63,32 @@ class UserController extends BaseController {
   }
 
   async getAll(req, res, next) {
+    const { email = undefined, ids = undefined } = req.query;
     try {
       const { page, limit, offset } = paginationBoundaries({
-        page: req.query.page,
-        limit: req.query.limit,
+        page: parseInt(req.query.page, 10),
+        limit: parseInt(req.query.limit, 10),
       });
+
+      const filter = { where: {} };
+      if (email) {
+        filter.where['email'] = {
+          [Op.like]: `${email}%`,
+        };
+      }
+
+      if (ids && Array.isArray(ids)) {
+        filter.where['id'] = {
+          [Op.notIn]: ids,
+        };
+      }
+
       const { count, rows } = await this._sequelizeModel.findAndCountAll({
         limit,
         offset,
         include: 'role',
         order: [['id', 'ASC']],
+        ...filter,
       });
       res.status(200).json({
         items: rows.map((user) => UserController.parseUser(user, user.role)),

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container } from 'react-bootstrap';
 
 import LoaderIndicator from '../loader-indicator';
@@ -27,6 +27,12 @@ export default function UsersTable() {
   const fire = useDeleteModal();
   const { deleteUser } = useDeleteUser({ onSuccess: triggerDataFetch });
   const { users, pagination, loading } = useUsers(page, limit, fetchData);
+
+  useEffect(() => {
+    if (pagination && pagination['currentPage'] > pagination['totalPages']) {
+      setPage(pagination['totalPages']);
+    }
+  }, [pagination]);
 
   if (loading) {
     return <LoaderIndicator />;

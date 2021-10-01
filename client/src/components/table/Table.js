@@ -10,6 +10,8 @@ export default function CustomTable({
   currentLimit,
   onLimitChange,
   limitOptions,
+  hidePagination = false,
+  hideLimitSelector,
 }) {
   return (
     <>
@@ -17,16 +19,20 @@ export default function CustomTable({
         {children}
       </Table>
       <Row>
-        <Col sm={12} md={4} style={{ marginBottom: '20px' }}>
-          <LimitSelector
-            options={limitOptions}
-            onLimitChange={onLimitChange}
-            currentLimit={currentLimit}
-          />
-        </Col>
-        <Col>
-          <Pagination {...pagination} onPageChange={onPageChange} />
-        </Col>
+        {hideLimitSelector ? null : (
+          <Col sm={12} md={4} style={{ marginBottom: '20px' }}>
+            <LimitSelector
+              options={limitOptions}
+              onLimitChange={onLimitChange}
+              currentLimit={currentLimit}
+            />
+          </Col>
+        )}
+        {hidePagination ? null : (
+          <Col>
+            <Pagination {...pagination} onPageChange={onPageChange} />
+          </Col>
+        )}
       </Row>
     </>
   );
