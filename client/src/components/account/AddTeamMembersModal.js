@@ -14,6 +14,7 @@ const canSelectedMore = (currentLength, customToast) => {
       `You only can send ${LIMIT_USERS_PER_REQUEST} team members per request`,
       {
         type: 'warning',
+        toastId: 'cannotSelectMore',
       }
     );
     return false;
@@ -67,19 +68,18 @@ export default function AddTeamMembersModal({
   const handleSelectAll = () => {
     setCheckAllInPage((checked) => {
       const isChecked = !checked;
-
-      if (
-        !checked &&
-        !canSelectedMore(selectedUsers.length + users.length, customToast)
-      ) {
-        return checked;
-      }
-
       const userIds = users.map((u) => u.id);
+
       if (isChecked) {
-        setSelectedUsers((selected) =>
-          Array.from(new Set([...selected, ...userIds]))
+        const newSelectedUsers = Array.from(
+          new Set([...selectedUsers, ...userIds])
         );
+
+        if (!canSelectedMore(newSelectedUsers.length, customToast)) {
+          return checked;
+        }
+
+        setSelectedUsers(newSelectedUsers);
       } else {
         setSelectedUsers((selected) => [
           ...selected.filter((s) => !userIds.includes(s)),

@@ -173,3 +173,30 @@ export function useAddTeamToAccount(fetchData) {
 
   return { loading, errors, addTeamToAccount };
 }
+
+export function useRemoveMemberTeam(fetchData) {
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const { successToast, errorToast } = useToast();
+  const sessionExpired = useSessionExpired();
+
+  const removeTeamMember = async (accountId, teamMemberId) => {
+    const { request } = requestHandler({
+      sessionExpired,
+      setErrors,
+      setLoading,
+      onError: errorToast,
+      apiCall: async (_, cancelToken) => {
+        await api.delete(`/api/v1/teams/${accountId}/${teamMemberId}`, {
+          cancelToken,
+        });
+
+        successToast('Team member unassigned successfully');
+        fetchData();
+      },
+    });
+    request();
+  };
+
+  return { loading, errors, removeTeamMember };
+}

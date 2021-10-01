@@ -1,10 +1,21 @@
 import { useState } from 'react';
+import { faUserMinus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import AddTeamMembersModal from './AddTeamMembersModal';
+import LoaderIndicator from '../loader-indicator';
 import Table, { TableHead, TableBody, TableTitle } from '../table';
+import { useDeleteModal, useRemoveMemberTeam } from '../../hooks';
 
 export default function AccountTeam({ team = [], accountId, refetchData }) {
   const [open, setOpen] = useState(false);
+  const { loading, removeTeamMember } = useRemoveMemberTeam(refetchData);
+  const fire = useDeleteModal();
+
+  if (loading) {
+    return <LoaderIndicator />;
+  }
+
   return (
     <>
       <TableTitle
@@ -24,7 +35,7 @@ export default function AccountTeam({ team = [], accountId, refetchData }) {
 
       {team.length ? (
         <Table hidePagination hideLimitSelector>
-          <TableHead labels={['Id', 'Name', 'Email']} />
+          <TableHead labels={['Id', 'Name', 'Email', 'Unassign']} />
           <TableBody
             items={team}
             renderFunction={(member) => (
@@ -32,6 +43,16 @@ export default function AccountTeam({ team = [], accountId, refetchData }) {
                 <td>{member.id}</td>
                 <td>{member.name}</td>
                 <td>{member.email}</td>
+                <td style={{ textAlign: 'center' }}>
+                  <FontAwesomeIcon
+                    icon={faUserMinus}
+                    color="#ce0002"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() =>
+                      fire(() => removeTeamMember(accountId, member.id))
+                    }
+                  />
+                </td>
               </tr>
             )}
           />
