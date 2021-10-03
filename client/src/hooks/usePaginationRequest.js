@@ -4,7 +4,7 @@ import { api } from '../services';
 import { useSessionExpired } from './useSessionExpired';
 import { requestHandler } from '../utils';
 
-export function usePaginationRequest(url, page, limit, fetch, query) {
+export function usePaginationRequest(url, page, limit, query) {
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({});
   const [errors, setErrors] = useState(null);
@@ -30,7 +30,7 @@ export function usePaginationRequest(url, page, limit, fetch, query) {
     request();
 
     return cleanUp;
-  }, [page, limit, url, fetch, sessionExpired, query]);
+  }, [page, limit, url, sessionExpired, query]);
 
   return {
     items,
