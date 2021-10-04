@@ -5,6 +5,7 @@ const {
   BadRequestException,
   ConflictException,
 } = require('../../../src/utils/errors');
+const { User } = require('../../../src/models');
 
 describe('Account Controller', () => {
   const AccountMockModel = {
@@ -181,10 +182,21 @@ describe('Account Controller', () => {
       expect(typeof sut.getAccount).toBe('function');
     });
 
-    it('should call Account.findByPk using req.params.id', async () => {
+    it('should call Account.findByPk using req.params.id and include the User relation to get the team', async () => {
       req.params.id = '1';
       await sut.getAccount(req, res, next);
-      expect(AccountMockModel.findByPk).toHaveBeenCalledWith(1);
+      expect(AccountMockModel.findByPk).toHaveBeenCalledWith(1, {
+        include: [
+          {
+            model: User,
+            as: 'team',
+            attributes: ['id', 'name', 'email'],
+            through: {
+              attributes: [],
+            },
+          },
+        ],
+      });
     });
 
     it('should return 200 in the response', async () => {

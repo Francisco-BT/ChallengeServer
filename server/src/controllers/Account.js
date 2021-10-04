@@ -9,6 +9,7 @@ const {
   buildPagination,
   pickValue,
 } = require('../utils');
+const { User } = require('../models');
 
 class AccountController extends BaseController {
   constructor(model) {
@@ -56,9 +57,21 @@ class AccountController extends BaseController {
   async getAccount(req, res, next) {
     try {
       const { id } = req.params;
-      const account = await this._sequelizeModel.findByPk(parseInt(id, 10));
+      const account = await this._sequelizeModel.findByPk(parseInt(id, 10), {
+        include: [
+          {
+            model: User,
+            as: 'team',
+            attributes: ['id', 'name', 'email'],
+            through: { attributes: [] },
+          },
+        ],
+      });
       if (account) {
-        return res.status(200).json(AccountController.parseAccount(account));
+        return res.status(200).json({
+          ...AccountController.parseAccount(account),
+          team: account.team,
+        });
       }
       next(new BadRequestException());
     } catch {
@@ -88,13 +101,13 @@ class AccountController extends BaseController {
       const account = await this._sequelizeModel.findByPk(parseInt(id, 10));
 
       if (account) {
-        await account.save();
         account.name = pickValue(name, account.name);
         account.clientName = pickValue(clientName, account.clientName);
         account.responsibleName = pickValue(
           responsibleName,
           account.responsibleName
         );
+        await account.save();
         return res.status(200).json(account);
       }
       next(new BadRequestException());

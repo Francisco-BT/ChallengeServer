@@ -1,8 +1,14 @@
-import { Button } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
-export default function TableTitle({ title, showButton = true, onClick }) {
+import { IconButton } from '../inputs';
+
+export default function TableTitle({
+  children,
+  title,
+  showPlusButton = true,
+  plusButtonTooltip = '',
+  onClick,
+}) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
       <h3
@@ -16,16 +22,16 @@ export default function TableTitle({ title, showButton = true, onClick }) {
       >
         {title}
       </h3>
-      <Button
-        style={{
-          height: '40px',
-          backgroundColor: '#ce0002',
-          borderColor: '#ce0002',
-        }}
-        onClick={onClick}
-      >
-        <FontAwesomeIcon icon={faPlus} />
-      </Button>
+      <span style={{ display: 'flex' }}>
+        {showPlusButton ? (
+          <IconButton
+            icon={faPlus}
+            onClick={onClick}
+            tooltip={plusButtonTooltip}
+          />
+        ) : null}
+        {children}
+      </span>
     </div>
   );
 }

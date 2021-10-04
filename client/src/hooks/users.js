@@ -1,15 +1,16 @@
-import axios from 'axios';
 import { useCallback, useState } from 'react';
-import { usePaginationRequest } from './usePaginationRequest';
 
 import { api } from '../services';
+import { requestHandler } from '../utils';
+import { usePaginationRequest, useSessionExpired, useToast } from '.';
 
-export function useUsers(page, limit, fetchData) {
+export function useUsers(page, limit, fetchData, query) {
   const { items, pagination, loading, error } = usePaginationRequest(
     '/api/v1/users',
     page,
     limit,
-    fetchData
+    fetchData,
+    query
   );
 
   return {
@@ -20,83 +21,82 @@ export function useUsers(page, limit, fetchData) {
   };
 }
 
-export function useSaveUser(editing, user, id, onSuccess, onError) {
+export function useSaveUser(editing, user, id, onSuccess) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const sessionExpired = useSessionExpired();
+  const { errorToast, successToast } = useToast();
+  const saveUser = async () => {
+    const { request } = requestHandler({
+      setLoading,
+      setErrors,
+      sessionExpired,
+      onError: errorToast,
+      apiCall: async (_, cancelToken) => {
+        let request;
+        const data = {
+          ...user,
+          cvLink: user.cvLink ? user.cvLink : undefined,
+          englishLevel: user.englishLevel ? user.englishLevel : undefined,
+          technicalKnowledge: user.technicalKnowledge
+            ? user.technicalKnowledge
+            : undefined,
+        };
 
-  const saveUser = useCallback(async () => {
-    let request;
-    const source = axios.CancelToken.source();
-    setLoading(true);
-    setErrors({});
+        if (editing) {
+          request = api.put(`/api/v1/users/${id}`, data, {
+            cancelToken,
+          });
+        } else {
+          request = api.post('/api/v1/users', data, {
+            cancelToken,
+          });
+        }
 
-    const data = {
-      ...user,
-      cvLink: user.cvLink ? user.cvLink : undefined,
-      englishLevel: user.englishLevel ? user.englishLevel : undefined,
-      technicalKnowledge: user.technicalKnowledge
-        ? user.technicalKnowledge
-        : undefined,
-    };
-
-    if (editing) {
-      request = api.put(`/api/v1/users/${id}`, data, {
-        cancelToken: source.token,
-      });
-    } else {
-      request = api.post('/api/v1/users', data, { cancelToken: source.token });
-    }
-    try {
-      await request;
-      onSuccess();
-    } catch (error) {
-      if (error.response && error.response.data) {
-        setErrors(error.response.data.errors);
-        onError('Some fields have invalid values');
-      } else {
-        onError('Something went wrong, please try again.', 'error');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [editing, user, id, onSuccess, onError]);
+        await request;
+        successToast(
+          editing
+            ? 'User was updated successfully'
+            : 'User was created successfully'
+        );
+        onSuccess();
+      },
+    });
+    request();
+  };
 
   return {
     errors,
     loading,
     saveUser,
+    clear: useCallback(() => setErrors({}), []),
   };
 }
 
-export function useDeleteUser({ onSuccess, onError }) {
+export function useDeleteUser({ onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(null);
+  const sessionExpired = useSessionExpired();
+  const { errorToast, successToast } = useToast();
 
-  const deleteUser = useCallback(
-    async (id, name) => {
-      const source = axios.CancelToken.source();
-      setLoading(true);
-      setErrors({});
-      try {
+  const deleteUser = async (id, name) => {
+    const { request } = requestHandler({
+      setLoading,
+      setErrors,
+      sessionExpired,
+      onError: errorToast,
+      apiCall: async (_, cancelToken) => {
         await api.delete(`/api/v1/users/${id}`, {
-          cancelToken: source.token,
+          cancelToken,
         });
-        onSuccess((name = ''));
+        successToast(`User ${name} has been deleted`);
+        onSuccess();
         return true;
-      } catch {
-        const message =
-          'There was an error deleting the user, please try again.';
-        setErrors({
-          message,
-        });
-        onError(message);
-        return false;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [onSuccess, onError]
-  );
+      },
+    });
+
+    request();
+  };
 
   return { loading, errors, deleteUser };
 }

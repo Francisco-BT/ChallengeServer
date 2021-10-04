@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const BaseController = require('./BaseController');
 const { encrypt, compareEncrypted, generateToken } = require('../utils');
 const {
@@ -20,6 +21,17 @@ class UserController extends BaseController {
     super(model);
     this.RoleModel = RoleModel;
     this.TokenModel = TokenModel;
+  }
+
+  static hasUserChange(newValues, oldValues) {
+    return (
+      String(newValues.name) !== String(oldValues.name) &&
+      String(newValues.cvLink || '') !== String(oldValues.cvLink || '') &&
+      String(newValues.englishLevel || '') !==
+        String(oldValues.englishLevel || '') &&
+      String(newValues.technicalKnowledge || '') !==
+        String(oldValues.technicalKnowledge || '')
+    );
   }
 
   async create(req, res, next) {
@@ -51,16 +63,32 @@ class UserController extends BaseController {
   }
 
   async getAll(req, res, next) {
+    const { email = undefined, ids = undefined } = req.query;
     try {
       const { page, limit, offset } = paginationBoundaries({
-        page: req.query.page,
-        limit: req.query.limit,
+        page: parseInt(req.query.page, 10),
+        limit: parseInt(req.query.limit, 10),
       });
+
+      const filter = { where: {} };
+      if (email) {
+        filter.where['email'] = {
+          [Op.like]: `${email}%`,
+        };
+      }
+
+      if (ids && Array.isArray(ids)) {
+        filter.where['id'] = {
+          [Op.notIn]: ids,
+        };
+      }
+
       const { count, rows } = await this._sequelizeModel.findAndCountAll({
         limit,
         offset,
         include: 'role',
         order: [['id', 'ASC']],
+        ...filter,
       });
       res.status(200).json({
         items: rows.map((user) => UserController.parseUser(user, user.role)),
@@ -74,7 +102,10 @@ class UserController extends BaseController {
   async authenticate(req, res, next) {
     try {
       const { email, password } = req.body;
-      const user = await this._sequelizeModel.findOne({ where: { email } });
+      const user = await this._sequelizeModel.findOne({
+        where: { email },
+        include: 'role',
+      });
 
       if (user) {
         const isValidPassword = await compareEncrypted(password, user.password);
@@ -83,6 +114,7 @@ class UserController extends BaseController {
           return res.status(200).json({
             id: user.id,
             name: user.name,
+            role: user.role.name,
             token,
           });
         }
@@ -138,6 +170,9 @@ class UserController extends BaseController {
 
       const user = await this.findUserById(id, { include: 'role' });
       if (user) {
+        if (!UserController.hasUserChange(req.body, user)) {
+          return next(new APIException('The data has not change', 422));
+        }
         user.name = pickValue(name, user.name);
         user.englishLevel = pickValue(englishLevel, user.englishLevel);
         user.cvLink = pickValue(cvLink, user.cvLink);

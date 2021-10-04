@@ -1,4 +1,5 @@
-const { Op } = require('sequelize');
+const Sequelize = require('sequelize');
+const { Op } = Sequelize;
 const BaseController = require('./BaseController');
 const { BadRequestException, APIException } = require('../utils/errors');
 const { paginationBoundaries, buildPagination } = require('../utils');
@@ -87,35 +88,48 @@ class TeamController extends BaseController {
         maxLimit: TEAM_MOVEMENTS_LOG_MAX_LIMIT_PER_PAGE,
       });
 
-      const filters = {};
+      const filters = [];
 
       if (userName) {
-        filters.userName = String(userName);
+        filters.push({ userName: { [Op.like]: `${String(userName)}%` } });
       }
 
       if (accountName) {
-        filters.accountName = String(accountName);
+        filters.push({ accountName: { [Op.like]: `${String(accountName)}%` } });
       }
 
       if (startDate) {
-        filters.startDate = { [Op.gte]: startDate };
+        filters.push(
+          Sequelize.where(Sequelize.fn('date', Sequelize.col('startDate')), {
+            [Op.gte]: String(startDate),
+          })
+        );
       }
 
       if (endDate) {
-        filters.endDate = { [startDate ? Op.lte : Op.gte]: endDate };
+        filters.push(
+          Sequelize.where(Sequelize.fn('date', Sequelize.col('endDate')), {
+            [startDate ? Op.lte : Op.gte]: endDate,
+          })
+        );
+      }
+
+      const where = {};
+      if (filters.length) {
+        where[Op.and] = filters;
       }
 
       const { rows, count } = await this.TeamMovement.findAndCountAll({
         order: [['id', 'DESC']],
         limit,
         offset,
-        where: { ...filters },
+        where: { ...where },
       });
       res.status(200).json({
         items: rows,
         pagination: buildPagination({ count, limit, page }),
       });
-    } catch {
+    } catch (e) {
       next(new BadRequestException());
     }
   }

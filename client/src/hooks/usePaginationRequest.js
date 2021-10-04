@@ -1,56 +1,41 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 
 import { api } from '../services';
+import { useSessionExpired } from './useSessionExpired';
+import { requestHandler } from '../utils';
 
-const CancelToken = axios.CancelToken;
-export function usePaginationRequest(url, page, limit, fetch) {
+export function usePaginationRequest(url, page, limit, query) {
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({});
-  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState(null);
   const [loading, setLoading] = useState(false);
+  const sessionExpired = useSessionExpired();
 
   useEffect(() => {
-    let unmounted = false;
-    const source = CancelToken.source();
-    const request = async () => {
-      try {
-        setLoading(true);
+    const { request, cleanUp } = requestHandler({
+      setLoading,
+      setErrors,
+      sessionExpired,
+      apiCall: async (unmounted, cancelToken) => {
         const { data } = await api.get(url, {
-          cancelToken: source.token,
-          params: { page, limit },
+          cancelToken,
+          params: { ...query, page, limit },
         });
         if (!unmounted) {
           setItems(data.items ? data.items : data);
           setPagination(data.pagination ? data.pagination : null);
         }
-      } catch (error) {
-        let logOut = false;
-        if (error.response && error.response.status === 401) {
-          logOut = true;
-        }
-
-        !unmounted &&
-          setError({
-            message: error.message,
-            logOut,
-          });
-      } finally {
-        !unmounted && setLoading(false);
-      }
-    };
+      },
+    });
     request();
 
-    return () => {
-      unmounted = true;
-      source.cancel();
-    };
-  }, [page, limit, url, fetch]);
+    return cleanUp;
+  }, [page, limit, url, sessionExpired, query]);
 
   return {
     items,
     pagination,
-    error,
+    errors,
     loading,
   };
 }

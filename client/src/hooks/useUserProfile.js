@@ -1,46 +1,35 @@
-import axios from 'axios';
 import { useState, useEffect } from 'react';
 
 import { api } from '../services';
+import { useSessionExpired } from '.';
+import { requestHandler } from '../utils';
 
-const CancelToken = axios.CancelToken;
 export function useUserProfile(id) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState(null);
+  const sessionExpired = useSessionExpired();
 
   useEffect(() => {
-    const source = CancelToken.source();
-    const requestUserData = async () => {
-      try {
-        setLoading(true);
+    const { request, cleanUp } = requestHandler({
+      setLoading,
+      sessionExpired,
+      setErrors,
+      apiCall: async (unmounted, cancelToken) => {
         const { data: userData } = await api.get(`/api/v1/users/${id}`, {
-          cancelToken: source.token,
+          cancelToken,
         });
-        setData(userData);
-      } catch (error) {
-        let logOut = false;
-        if (error.response && error.response.status === 401) {
-          logOut = true;
-        }
-        setError({
-          message: error.message,
-          logOut,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+        !unmounted && setData(userData);
+      },
+    });
 
-    requestUserData();
-    return () => {
-      source.cancel();
-    };
-  }, [id]);
+    request();
+    return cleanUp;
+  }, [id, sessionExpired]);
 
   return {
     userData: data,
     loading,
-    error,
+    errors,
   };
 }

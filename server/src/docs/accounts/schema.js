@@ -21,6 +21,23 @@ module.exports = {
         $ref: '#/components/schemas/Id',
       },
       ...AccountCommonFields,
+      team: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: {
+              $ref: '#/components/schemas/Id',
+            },
+            name: {
+              type: 'string',
+            },
+            email: {
+              type: 'string',
+            },
+          },
+        },
+      },
     },
   },
   AccountInput: {

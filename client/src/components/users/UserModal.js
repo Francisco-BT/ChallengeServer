@@ -7,8 +7,6 @@ import { DisableInput, DisableSelect } from '../inputs';
 import { useRoles, useSaveUser } from '../../hooks';
 
 const englishLevel = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-const closeLabel = 'Close';
-const actionLabel = 'Save';
 
 const userInitialState = Object.freeze({
   name: '',
@@ -27,26 +25,18 @@ export default function UserModal({
   userData,
   onClose,
   onAction,
-  showToast,
 }) {
   const isNewUser = !editing && !viewing;
   const { roles } = useRoles();
   const title = editing || viewing ? `User: ${userData.name}` : 'New User';
   const [user, setUser] = useState(userInitialState);
-  const { errors, loading, saveUser } = useSaveUser(
+  const { errors, loading, saveUser, clear } = useSaveUser(
     editing,
     user,
     userData ? userData.id : undefined,
     () => {
       onClose();
-      showToast(
-        editing ? 'User updated successfully' : 'User created successfully',
-        'success'
-      );
       onAction();
-    },
-    (message) => {
-      showToast(message, 'error');
     }
   );
 
@@ -60,14 +50,13 @@ export default function UserModal({
     } else {
       setUser(userInitialState);
     }
-  }, [userData]);
+    clear();
+  }, [userData, clear]);
 
   return (
     <Modal
       open={open}
       title={title}
-      closeLabel={closeLabel}
-      actionLabel={actionLabel}
       onClose={onClose}
       onAction={saveUser}
       loading={loading}
@@ -91,7 +80,7 @@ export default function UserModal({
         <Form.Group className="mb-3" controlId="formUserEmail">
           <Form.Label>Email</Form.Label>
           <DisableInput
-            disabled={viewing}
+            disabled={!isNewUser}
             type="email"
             placeholder="Enter email"
             value={user.email}

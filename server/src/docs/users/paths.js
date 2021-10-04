@@ -71,6 +71,27 @@ module.exports = {
             $ref: '#/components/schemas/PaginationLimit',
           },
         },
+        {
+          name: 'email',
+          in: 'query',
+          schema: {
+            attributes: {
+              type: 'string',
+              description:
+                'An string to return the user that match using a forward search',
+            },
+          },
+        },
+        {
+          name: 'ids',
+          in: 'query',
+          schema: {
+            type: 'array',
+            items: { type: 'integer' },
+            description: 'An array of ids to omit in the response',
+            style: 'matrix',
+          },
+        },
       ],
       responses: {
         200: {
@@ -158,6 +179,10 @@ module.exports = {
           description: 'The user was updated successfully',
         },
         ...errorResponses(),
+        422: {
+          description:
+            'The data received is correct but is the same than the current values of the user',
+        },
       },
     },
     delete: {
