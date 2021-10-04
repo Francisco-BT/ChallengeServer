@@ -1,3 +1,4 @@
+const Sequelize = require('sequelize');
 const { Op } = require('sequelize');
 const { createRequest, createResponse } = require('node-mocks-http');
 const { TeamController } = require('../../../src/controllers');
@@ -212,19 +213,25 @@ describe('TeamController', () => {
       );
     });
 
-    it('should call TeamMovement.findAndCountAll with userName', async () => {
+    it('should call TeamMovement.findAndCountAll with userName using like search', async () => {
       req.query = { userName: 'TestFilter' };
       await sut.getTeamMovements(req, res, next);
       expect(TeamMovementMockModel.findAndCountAll).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { userName: 'TestFilter' } })
+        expect.objectContaining({
+          where: { [Op.and]: [{ userName: { [Op.like]: 'TestFilter%' } }] },
+        })
       );
     });
 
-    it('should call TeamMovements.findAndCountAll with accountName', async () => {
+    it('should call TeamMovements.findAndCountAll with accountName using like search', async () => {
       req.query = { accountName: 'TestAccountFilter' };
       await sut.getTeamMovements(req, res, next);
       expect(TeamMovementMockModel.findAndCountAll).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { accountName: 'TestAccountFilter' } })
+        expect.objectContaining({
+          where: {
+            [Op.and]: [{ accountName: { [Op.like]: 'TestAccountFilter%' } }],
+          },
+        })
       );
     });
 
@@ -233,7 +240,16 @@ describe('TeamController', () => {
       await sut.getTeamMovements(req, res, next);
       expect(TeamMovementMockModel.findAndCountAll).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { startDate: { [Op.gte]: '2021-09-22' } },
+          where: {
+            [Op.and]: [
+              Sequelize.where(
+                Sequelize.fn('date', Sequelize.col('startDate')),
+                {
+                  [Op.gte]: '2021-09-22',
+                }
+              ),
+            ],
+          },
         })
       );
     });
@@ -243,7 +259,13 @@ describe('TeamController', () => {
       await sut.getTeamMovements(req, res, next);
       expect(TeamMovementMockModel.findAndCountAll).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { endDate: { [Op.gte]: '2021-09-23' } },
+          where: {
+            [Op.and]: [
+              Sequelize.where(Sequelize.fn('date', Sequelize.col('endDate')), {
+                [Op.gte]: '2021-09-23',
+              }),
+            ],
+          },
         })
       );
     });
@@ -254,8 +276,17 @@ describe('TeamController', () => {
       expect(TeamMovementMockModel.findAndCountAll).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
-            endDate: { [Op.lte]: '2021-09-23' },
-            startDate: { [Op.gte]: '2021-09-22' },
+            [Op.and]: [
+              Sequelize.where(
+                Sequelize.fn('date', Sequelize.col('startDate')),
+                {
+                  [Op.gte]: '2021-09-22',
+                }
+              ),
+              Sequelize.where(Sequelize.fn('date', Sequelize.col('endDate')), {
+                [Op.lte]: '2021-09-23',
+              }),
+            ],
           },
         })
       );

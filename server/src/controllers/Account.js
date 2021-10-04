@@ -74,8 +74,7 @@ class AccountController extends BaseController {
         });
       }
       next(new BadRequestException());
-    } catch (e) {
-      console.log('Error: ', e);
+    } catch {
       next(new APIException());
     }
   }
