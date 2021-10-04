@@ -1,0 +1,5 @@
+node_modules
+build
+.vscode
+server/node_modules
+client/node_modules
