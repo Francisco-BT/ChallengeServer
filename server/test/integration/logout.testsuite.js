@@ -27,12 +27,12 @@ module.exports = (agent) => {
       expect(tokenInDb).toBeNull();
     });
 
-    it('should response 403 if the token is removed and the user try to make a request with it', async () => {
+    it('should response 401 if the token is removed and the user try to make a request with it', async () => {
       const token = await getAuthToken(agent);
       await logOutRequest(token);
       const response = await logOutRequest(token);
 
-      expect(response.status).toBe(403);
+      expect(response.status).toBe(401);
     });
   });
 };

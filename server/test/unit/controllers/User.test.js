@@ -352,6 +352,9 @@ describe('User Controller', () => {
       id: 1,
       email: 'user@me.com',
       name: 'User',
+      role: {
+        name: 'Test',
+      },
     };
     beforeEach(async () => {
       mockUserModel.findOne = jest.fn().mockResolvedValueOnce({
@@ -373,6 +376,7 @@ describe('User Controller', () => {
       req.body.email = 'user@me.com';
       await sut.authenticate(req, res, next);
       expect(mockUserModel.findOne).toHaveBeenCalledWith({
+        include: 'role',
         where: {
           email: 'user@me.com',
         },
@@ -415,7 +419,7 @@ describe('User Controller', () => {
       await sut.authenticate(req, res, next);
 
       const body = res._getJSONData();
-      expect(Object.keys(body)).toEqual(['id', 'name', 'token']);
+      expect(Object.keys(body)).toEqual(['id', 'name', 'role', 'token']);
       expect(body.id).toBe(authReturnedUser.id);
       expect(body.name).toBe(authReturnedUser.name);
     });
