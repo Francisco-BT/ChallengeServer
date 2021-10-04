@@ -18,15 +18,15 @@ export function requestHandler({
     } catch (error) {
       let message = 'Something went wrong, please try again';
       if (error.response) {
-        console.error('Error request handler: ', error.response);
         const status = error.response.status;
         if (status === 401) {
           return sessionExpired();
         }
         if (status === 400) {
           onError('Some fields has invalid values, please try again');
-          return setErrors(error.response.data.errors);
+          return setErrors(error.response.data.errors || true);
         }
+
         if (error.response && error.response.data) {
           message = error.response.data.message;
         }

@@ -13,8 +13,9 @@ export function useProvideAuth() {
 
       if (userInStorage) {
         try {
+          setUser(JSON.parse(userInStorage));
           const userSession = JSON.parse(userInStorage);
-          const { data } = await api.get(`/api/v1/users/${userSession.id}`);
+          await api.get(`/api/v1/users/${userSession.id}`);
           return setUser(JSON.parse(userInStorage));
         } catch {
           localStorage.removeItem('user');

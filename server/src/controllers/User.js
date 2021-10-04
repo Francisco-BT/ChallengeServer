@@ -102,7 +102,10 @@ class UserController extends BaseController {
   async authenticate(req, res, next) {
     try {
       const { email, password } = req.body;
-      const user = await this._sequelizeModel.findOne({ where: { email } });
+      const user = await this._sequelizeModel.findOne({
+        where: { email },
+        include: 'role',
+      });
 
       if (user) {
         const isValidPassword = await compareEncrypted(password, user.password);
@@ -111,6 +114,7 @@ class UserController extends BaseController {
           return res.status(200).json({
             id: user.id,
             name: user.name,
+            role: user.role.name,
             token,
           });
         }

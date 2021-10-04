@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Container } from 'react-bootstrap';
+import { Redirect } from 'react-router-dom';
 
 import LoaderIndicator from '../loader-indicator';
 import AccountActions from './AccountActions';
@@ -10,7 +11,11 @@ export default function AccountPage({ match, history }) {
   const { id } = match.params;
   const [fetchData, setFetchData] = useState(true);
   const refetchData = () => setFetchData((fetchData) => !fetchData);
-  const { loading, account } = useAccount(id, fetchData);
+  const { loading, account, errors } = useAccount(id, fetchData);
+
+  if (errors === true) {
+    return <Redirect to="/accounts" />;
+  }
 
   if (loading) {
     return <LoaderIndicator />;

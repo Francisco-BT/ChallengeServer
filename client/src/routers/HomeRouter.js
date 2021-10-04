@@ -1,5 +1,6 @@
 import { Route, Switch, Redirect } from 'react-router-dom';
 
+import { PrivateRolesRouter } from '../components/router';
 import NavBar from '../components/navbar';
 import HomePage from '../components/home';
 import UsersPage from '../components/users';
@@ -13,11 +14,13 @@ export default function AppRouter() {
       <NavBar />
       <Switch>
         <Route path="/home" component={HomePage} />
-        <Route path="/users" component={UsersPage} />
-        <Route path="/accounts/:id" component={AccountPage} />
-        <Route path="/accounts" component={AccountsPage} />
-        <Route path="/team-movements" component={TeamMovementsPage} />
-        <Redirect from="/" to="/home" />
+        <Redirect exact from="/" to="/home" />
+        <PrivateRolesRouter validRoles={['SuperAdmin', 'Admin']}>
+          <Route path="/users" component={UsersPage} />
+          <Route path="/accounts/:id" component={AccountPage} />
+          <Route path="/accounts" component={AccountsPage} />
+          <Route path="/team-movements" component={TeamMovementsPage} />
+        </PrivateRolesRouter>
       </Switch>
     </div>
   );

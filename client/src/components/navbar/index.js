@@ -16,15 +16,19 @@ export function NavBar({ history }) {
             <Link className="nav-link" to="/home">
               Home
             </Link>
-            <Link className="nav-link" to="/users">
-              Users
-            </Link>
-            <Link className="nav-link" to="/accounts">
-              Accounts
-            </Link>
-            <Link className="nav-link" to="/team-movements">
-              Team Movements
-            </Link>
+            {user.role === 'Normal' ? null : (
+              <>
+                <Link className="nav-link" to="/users">
+                  Users
+                </Link>
+                <Link className="nav-link" to="/accounts">
+                  Accounts
+                </Link>
+                <Link className="nav-link" to="/team-movements">
+                  Team Movements
+                </Link>
+              </>
+            )}
           </Nav>
           <Nav>
             <Nav.Link onClick={() => logOut(false, history.push('/'))}>

@@ -2,7 +2,7 @@ const passport = require('passport');
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const { JWT_ISSUER, JWT_SECRET } = require('../config');
 const { User, Token } = require('../models');
-const { ForbiddenException } = require('../utils/errors');
+const { AuthenticationException } = require('../utils/errors');
 const { getTokenFromHeaders } = require('../utils');
 const { UserController } = require('../controllers');
 
@@ -30,9 +30,9 @@ passport.use(
         if (user && isStoredToken) {
           return done(null, UserController.parseUser(user, user.role));
         }
-        return done(new ForbiddenException());
+        return done(new AuthenticationException());
       } catch {
-        return done(new ForbiddenException());
+        return done(new AuthenticationException());
       }
     }
   )
