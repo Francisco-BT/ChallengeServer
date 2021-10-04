@@ -8,16 +8,22 @@ export function useProvideAuth() {
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
-    const userInStorage = localStorage.getItem('user');
+    const validateSession = async () => {
+      const userInStorage = localStorage.getItem('user');
 
-    if (userInStorage) {
-      try {
-        return setUser(JSON.parse(userInStorage));
-      } catch {
-        return setUser(null);
+      if (userInStorage) {
+        try {
+          const userSession = JSON.parse(userInStorage);
+          const { data } = await api.get(`/api/v1/users/${userSession.id}`);
+          return setUser(JSON.parse(userInStorage));
+        } catch {
+          localStorage.removeItem('user');
+          return setUser(null);
+        }
       }
-    }
-    setUser(null);
+      setUser(null);
+    };
+    validateSession();
   }, []);
 
   const singIn = async (email, password, cb) => {
@@ -36,7 +42,11 @@ export function useProvideAuth() {
     return user;
   };
 
-  const logOut = (sessionExpired = false, cb = () => {}) => {
+  const logOut = async (sessionExpired = false, cb = () => {}) => {
+    try {
+      await api.post('/api/v1/users/logout');
+    } catch {}
+
     if (sessionExpired) {
       toast('Your session has expired. Please log in again.', {
         type: 'info',

@@ -5,6 +5,7 @@ import LoaderIndicator from '../loader-indicator';
 import FiltersForm from './FiltersForm';
 import Table, { TableHead, TableBody, TableTitle } from '../table';
 import { useTeamsMovements } from '../../hooks';
+import { formatDate } from '../../utils';
 
 export default function TeamMovementsPage() {
   const [filters, setFilters] = useState({});
@@ -50,8 +51,8 @@ export default function TeamMovementsPage() {
                 </td>
                 <td>{movement.accountName}</td>
                 <td>{movement.userName}</td>
-                <td>{movement.startDate}</td>
-                <td>{movement.endDate || '---'}</td>
+                <td>{formatDate(movement.startDate)}</td>
+                <td>{formatDate(movement.endDate)}</td>
               </tr>
             )}
           />
