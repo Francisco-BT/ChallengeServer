@@ -40,7 +40,6 @@ export function useProvideAuth() {
     } catch {
       setAuthError('Invalid Credentials');
     }
-    return user;
   };
 
   const logOut = async (sessionExpired = false, cb = () => {}) => {
