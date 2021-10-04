@@ -18,7 +18,7 @@ export default function AppRouter() {
         <PrivateRolesRouter validRoles={['SuperAdmin', 'Admin']}>
           <Route path="/users" component={UsersPage} />
           <Route path="/accounts/:id" component={AccountPage} />
-          <Route path="/accounts" component={AccountsPage} />
+          <Route exact path="/accounts" component={AccountsPage} />
           <Route path="/team-movements" component={TeamMovementsPage} />
         </PrivateRolesRouter>
       </Switch>
