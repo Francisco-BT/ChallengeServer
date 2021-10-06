@@ -7,7 +7,7 @@ import LoginForm from './LoginForm';
 export default function LogInPage() {
   const history = useHistory();
   const location = useLocation();
-  const { singIn, authError, user } = useAuth();
+  const { singIn, authError, user, loading } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -27,6 +27,7 @@ export default function LogInPage() {
       }}
     >
       <LoginForm
+        loading={loading}
         authError={authError}
         onSubmit={(email, password) =>
           singIn(email, password, history.replace('/'))

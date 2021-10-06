@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Button, Form } from 'react-bootstrap';
 import ValidationError from '../ValidationError';
+import LoaderIndicator from 'react-loader-spinner';
 
-export default function LoginForm({ onSubmit, authError }) {
+export default function LoginForm({ onSubmit, authError, loading }) {
   const [errors, setErrors] = useState({});
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -78,9 +79,15 @@ export default function LoginForm({ onSubmit, authError }) {
           </div>
         ) : null}
         <div className="d-grip gap-2">
-          <Button variant="danger" type="submit" style={{ width: '100%' }}>
-            Log In
-          </Button>
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <LoaderIndicator type="Oval" height={40} color="#ce0002" />
+            </div>
+          ) : (
+            <Button variant="danger" type="submit" style={{ width: '100%' }}>
+              Log In
+            </Button>
+          )}
         </div>
       </Form>
     </div>

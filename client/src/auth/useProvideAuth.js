@@ -5,6 +5,7 @@ import { api } from '../services';
 
 export function useProvideAuth() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export function useProvideAuth() {
   }, []);
 
   const singIn = async (email, password, cb) => {
+    setLoading(true);
     setAuthError(null);
     try {
       const { data: user } = await api.post('/api/v1/users/auth', {
@@ -39,6 +41,8 @@ export function useProvideAuth() {
       cb();
     } catch {
       setAuthError('Invalid Credentials');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,10 +64,5 @@ export function useProvideAuth() {
     cb();
   };
 
-  return {
-    user,
-    authError,
-    singIn,
-    logOut,
-  };
+  return { user, authError, singIn, logOut, loading };
 }
